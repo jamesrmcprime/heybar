@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HeyBar
 
-## Getting Started
+Mobile-first Progressive Web App for sealed-bottle alcohol ordering in South Africa (ZAR).
 
-First, run the development server:
+Night Seal drinker shell: **Home · Bottles · Friends · Orders · Profile**. Cocktails / custom drinks are out of launch scope.
+
+## Stack
+
+- Next.js (App Router) + TypeScript
+- Night Seal design tokens (`src/styles/design-tokens.css`)
+- PWA via `@ducanh2912/next-pwa` (service worker in production builds)
+- Playwright smoke tests (`e2e/`)
+- Payment & delivery adapters are **stubs** — provider / model still OPEN
+
+## Prerequisites
+
+- Node.js 20+
+- npm 10+
+
+## Setup
+
+```bash
+npm install
+npx playwright install chromium   # first time, for e2e
+```
+
+## Develop
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Purpose |
+|---|---|
+| `npm run dev` | Local Next.js (Turbopack) |
+| `npm run build` | Production build + PWA assets |
+| `npm start` | Serve production build |
+| `npm run lint` | ESLint |
+| `npm run test:e2e` | Playwright smoke suite |
 
-## Learn More
+## Catalogue seed
 
-To learn more about Next.js, take a look at the following resources:
+Fifteen sealed bottles with **editable prototype prices** live in `src/data/bottles.ts` (from the master brief). They are not confirmed retail prices.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## OPEN / stubs
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Do **not** invent:
 
-## Deploy on Vercel
+- Bottle Top earn / redeem / conversion rules
+- Payment provider (see `src/lib/adapters/payment.ts`)
+- Delivery model / territory (see `src/lib/adapters/delivery.ts`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Visual QA
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Playwright smoke tests check shell structure only. Screenshot baselines for Home, Bottles, Friends, Orders, and Profile require Visual QA + owner authorization before locking.
