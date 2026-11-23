@@ -1,0 +1,44 @@
+.search {
+  height: 44px;
+  border-radius: var(--hb-radius-md);
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-line);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  color: var(--hb-ash);
+  font-size: 14px;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnSm {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--hb-radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  font-family: var(--hb-font-body);
+}
+
+.accept {
+  background: var(--hb-cta);
+  color: var(--hb-mist);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--hb-fog);
+  border: 1px solid var(--hb-line-strong);
+}
+
+.invite {
+  background: rgba(224, 154, 62, 0.14);
+  color: var(--hb-amber);
+  border: 1px solid rgba(224, 154, 62, 0.35);
+}
