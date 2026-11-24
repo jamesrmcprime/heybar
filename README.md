@@ -41,7 +41,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Production build + PWA assets |
 | `npm start` | Serve production build |
 | `npm run lint` | ESLint |
-| `npm run test:unit` | Node unit tests (inventory + payment + delivery + membership + bottle tops) |
+| `npm run test:unit` | Node unit tests (inventory + payment + delivery + membership + bottle tops + order-status notifications stub) |
 | `npm run test:e2e` | Playwright suite (shell smoke + full journey + matrix) |
 | `npm run test:e2e:journey` | Func QA journey + cancel/pay-fail matrix only |
 
