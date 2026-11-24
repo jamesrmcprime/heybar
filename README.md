@@ -40,11 +40,12 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Production build + PWA assets |
 | `npm start` | Serve production build |
 | `npm run lint` | ESLint |
+| `npm run test:unit` | Node unit tests (inventory + payment stub) |
 | `npm run test:e2e` | Playwright smoke suite |
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `build` → `test:e2e` on pull requests and pushes to `main`.
+GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `test:unit` → `build` → `test:e2e` on pull requests and pushes to `main` (`ubuntu-24.04`).
 
 ## Catalogue seed
 

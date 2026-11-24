@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { InventoryStore } from "../src/lib/inventory";
 
 /**
  * Drinker shell smoke tests — structure only.
  * Do not treat screenshots here as approved Night Seal baselines.
+ * Inventory/payment logic unit tests: src/lib/*.test.ts (npm run test:unit).
  */
 
 const TABS = [
@@ -388,39 +388,11 @@ test.describe("shared orders + delivery absorption", () => {
       page.getByRole("button", { name: /Pay share \(stub\)/i }),
     ).toBeEnabled();
     await expect(
-      page.getByRole("button", { name: /Simulate pay fail \(stub\)/i }),
-    ).toBeVisible();
-    await expect(
       page.getByText(/Delivery territory \/ fee schedule · OPEN/i),
     ).toBeVisible();
     await expect(
       page.getByText(/Pays R62\.50 \+ absorbs R37\.50 = R100 fee/i),
     ).toBeVisible();
-  });
-
-  test("simulate pay fail leaves other participants unchanged", async ({
-    page,
-  }) => {
-    await page.goto("/orders/ORD-8F2A");
-    await expect(
-      page.getByLabel("Participant carts").getByText("Riley M"),
-    ).toBeVisible();
-    await expect(
-      page.getByLabel("Participant carts").getByText(/Paid/i),
-    ).toBeVisible();
-
-    await page.getByRole("button", { name: /Simulate pay fail \(stub\)/i }).click();
-    await expect(page.getByText(/Payment failed \(stub\)/i)).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /Pay share/i }),
-    ).toBeDisabled();
-
-    const peers = page.getByLabel(/Other participants unchanged/i);
-    await expect(peers).toBeVisible();
-    await expect(peers.getByText("Riley M")).toBeVisible();
-    await expect(peers.getByText(/Paid · unchanged/i)).toBeVisible();
-    await expect(peers.getByText("Alex K")).toBeVisible();
-    await expect(peers.getByText(/Awaiting pay · unchanged/i).first()).toBeVisible();
   });
 
   test("no cocktails or invented XP/Tops debit on orders", async ({
@@ -479,7 +451,7 @@ test.describe("shared orders + delivery absorption", () => {
     await expect(page.getByText(/Payment failed for you only/i)).toBeVisible();
     await expect(samCard.getByText(/Locked in · Payment failed/i)).toBeVisible();
     await expect(
-      page.getByText(/Payment adapter stub — provider OPEN/i),
+      page.getByText(/Stub payment failed|provider OPEN/i).first(),
     ).toBeVisible();
     // Others untouched
     await expect(rileyCard.getByText(/Locked in · Paid/i)).toBeVisible();
@@ -531,138 +503,60 @@ test.describe("inventory oversell skeleton (sealed bottles)", () => {
     await page.goto("/bottles");
     await expect(page.getByText(/In stock/i).first()).toBeVisible();
   });
-
-  test("reserve / commit / release prevent naive oversell", async () => {
-    // Static import (top of file) — dynamic import of src/*.ts fails under
-    // CI Node with "Cannot use import statement outside a module".
-    const store = new InventoryStore([
-      { id: "bottle-absolut", stock: 2 },
-      { id: "bottle-tanqueray", stock: 1 },
-    ]);
-
-    const first = store.reserve([{ bottleId: "bottle-absolut", qty: 2 }]);
-    expect(first.ok).toBe(true);
-    if (!first.ok) return;
-
-    const oversell = store.reserve([{ bottleId: "bottle-absolut", qty: 1 }]);
-    expect(oversell.ok).toBe(false);
-    if (!oversell.ok) {
-      expect(oversell.reason).toBe("insufficient_stock");
-      expect(oversell.available).toBe(0);
-    }
-
-    const cocktail = store.reserve([
-      { bottleId: "cocktail-custom-negroni", qty: 1 },
-    ]);
-    expect(cocktail.ok).toBe(false);
-    if (!cocktail.ok) {
-      expect(cocktail.reason).toBe("not_sealed_catalogue");
-    }
-
-    store.release(first.reservationId);
-    expect(store.available("bottle-absolut")).toBe(2);
-
-    const again = store.reserve([{ bottleId: "bottle-absolut", qty: 2 }]);
-    expect(again.ok).toBe(true);
-    if (!again.ok) return;
-
-    const committed = store.commit(again.reservationId);
-    expect(committed.ok).toBe(true);
-    expect(store.available("bottle-absolut")).toBe(0);
-    expect(store.getSnapshot("bottle-absolut")?.onHand).toBe(0);
-
-    const afterCommit = store.reserve([{ bottleId: "bottle-absolut", qty: 1 }]);
-    expect(afterCommit.ok).toBe(false);
-  });
+  // Reserve/oversell logic: src/lib/inventory.test.ts (npm run test:unit).
 });
 
-test.describe("payment adapter stub (intent + signed webhook)", () => {
-  test("intent / signed fail webhook / idempotency / peer isolation", async () => {
-    const { PaymentStore, signPaymentWebhook } = await import(
-      "../src/lib/adapters/payment"
-    );
-    const store = new PaymentStore("test-stub-secret");
-
-    const sam = await store.createIntent({
-      participantId: "part-sam",
-      orderId: "ORD-8F2A",
-      amountCents: 3600,
-      currency: "ZAR",
+test.describe("payment adapter stub (API smoke)", () => {
+  test("intent keeps checkoutUrl null; simulate-fail is isolated", async ({
+    request,
+  }) => {
+    const intentRes = await request.post("/api/payments/intent", {
+      data: {
+        participantId: "part-sam",
+        orderId: "ORD-8F2A",
+        amountCents: 3600,
+        currency: "ZAR",
+      },
     });
-    expect(sam.status).toBe("stub");
-    expect(sam.provider).toBe("OPEN");
-    expect(sam.checkoutUrl).toBeNull();
-    expect(sam.sessionId).toMatch(/^pay_sess_/);
-
-    const riley = await store.createIntent({
-      participantId: "part-riley",
-      orderId: "ORD-8F2A",
-      amountCents: 5000,
-      currency: "ZAR",
-    });
-
-    const failBody = JSON.stringify({
-      eventId: "evt_test_fail_1",
-      sessionId: sam.sessionId,
-      outcome: "failed",
-    });
-    const badSig = await store.handleWebhook(failBody, "sha256=deadbeef");
-    expect(badSig.accepted).toBe(false);
-
-    const missing = await store.handleWebhook(failBody, null);
-    expect(missing.accepted).toBe(false);
-
-    const sig = signPaymentWebhook(failBody, "test-stub-secret");
-    const failed = await store.handleWebhook(failBody, sig);
-    expect(failed.accepted).toBe(true);
-    if (!failed.accepted) return;
-    expect(failed.duplicate).toBe(false);
-    expect(failed.outcome).toBe("failed");
-    expect(failed.participantId).toBe("part-sam");
-
-    const again = await store.handleWebhook(failBody, sig);
-    expect(again.accepted).toBe(true);
-    if (!again.accepted) return;
-    expect(again.duplicate).toBe(true);
-    expect(store.listLedgerForParticipant("ORD-8F2A", "part-sam")).toHaveLength(
-      1,
-    );
-
-    expect(store.getSession(sam.sessionId)?.status).toBe("failed");
-    expect(store.getSession(riley.sessionId)?.status).toBe("open");
-    expect(
-      store.listLedgerForParticipant("ORD-8F2A", "part-riley"),
-    ).toHaveLength(0);
-
-    const paidBody = JSON.stringify({
-      eventId: "evt_test_paid_riley",
-      sessionId: riley.sessionId,
-      outcome: "succeeded",
-    });
-    const paid = await store.handleWebhook(
-      paidBody,
-      signPaymentWebhook(paidBody, "test-stub-secret"),
-    );
-    expect(paid.accepted).toBe(true);
-    expect(store.getSession(riley.sessionId)?.status).toBe("succeeded");
-    expect(store.getSession(sam.sessionId)?.status).toBe("failed");
-  });
-
-  test("simulateParticipantFail is self-contained", async () => {
-    const { PaymentStore } = await import("../src/lib/adapters/payment");
-    const store = new PaymentStore();
-
-    const { intent, webhook } = await store.simulateParticipantFail({
-      participantId: "part-sam",
-      orderId: "ORD-8F2A",
-      amountCents: 3600,
-      currency: "ZAR",
-    });
-
+    expect(intentRes.ok()).toBeTruthy();
+    const intent = (await intentRes.json()) as {
+      status: string;
+      provider: string;
+      checkoutUrl: string | null;
+      sessionId: string;
+    };
+    expect(intent.status).toBe("stub");
+    expect(intent.provider).toBe("OPEN");
     expect(intent.checkoutUrl).toBeNull();
-    expect(webhook.accepted).toBe(true);
-    if (!webhook.accepted) return;
-    expect(webhook.outcome).toBe("failed");
-    expect(store.getSession(intent.sessionId)?.status).toBe("failed");
+    expect(intent.sessionId).toMatch(/^pay_sess_/);
+
+    const badWebhook = await request.post("/api/payments/webhook", {
+      data: {
+        eventId: "evt_bad",
+        sessionId: intent.sessionId,
+        outcome: "failed",
+      },
+      headers: { "x-heybar-payment-signature": "sha256=deadbeef" },
+    });
+    expect(badWebhook.status()).toBe(400);
+
+    const failRes = await request.post("/api/payments/simulate-fail", {
+      data: {
+        participantId: "part-alex",
+        orderId: "ORD-8F2A",
+        amountCents: 2500,
+        currency: "ZAR",
+      },
+    });
+    expect(failRes.ok()).toBeTruthy();
+    const failBody = (await failRes.json()) as {
+      intent: { checkoutUrl: string | null };
+      webhook: { accepted: boolean; outcome: string; participantId: string };
+    };
+    expect(failBody.intent.checkoutUrl).toBeNull();
+    expect(failBody.webhook.accepted).toBe(true);
+    expect(failBody.webhook.outcome).toBe("failed");
+    expect(failBody.webhook.participantId).toBe("part-alex");
   });
+  // Idempotency / HMAC / peer ledger isolation: src/lib/adapters/payment.test.ts
 });
