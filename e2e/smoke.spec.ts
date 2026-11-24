@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * Drinker shell smoke tests — structure only.
+ * Full Func QA journey + cancel/pay-fail matrix: e2e/journey.spec.ts (CI).
  * Do not treat screenshots here as approved Night Seal baselines.
  * Inventory/payment/bottle-tops unit tests: src/lib/*.test.ts (npm run test:unit).
  */
