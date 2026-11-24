@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "test:e2e:journey": "playwright test e2e/journey.spec.ts e2e/smoke.spec.ts -g \"onboarding → bottles|P0 leave|P0 pay stub|P0 remove|soft cancel retains\"",
     "test:e2e:ui": "playwright test --ui",
+    "test:pwa-smoke": "node scripts/pwa-smoke.mjs",
     "dev:turbo": "next dev --turbopack"
   },
   "dependencies": {

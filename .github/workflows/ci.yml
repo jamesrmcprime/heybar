@@ -41,6 +41,24 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: PWA install smoke (production)
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3000 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 90); do
+            if curl -sf http://127.0.0.1:3000/ >/dev/null; then
+              break
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "next start exited before becoming ready"
+              exit 1
+            fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:3000/ >/dev/null
+          EXPECT_SW=1 BASE_URL=http://127.0.0.1:3000 npm run test:pwa-smoke
+
       - name: E2E journey + cancel/pay-fail matrix
         run: npm run test:e2e
         env:

@@ -23,8 +23,11 @@ Night Seal drinker shell: **Home · Bottles · Friends · Orders · Profile**. C
 
 ```bash
 npm install
+cp .env.example .env.local   # optional — stubs work with defaults
 npx playwright install chromium   # first time, for e2e
 ```
+
+See `.env.example` for every variable the app expects (auth stub, payment stub secret, Supabase placeholders, PWA smoke). Leave Supabase / live payment empty until James supplies owner credentials — do not invent values.
 
 ## Develop
 
@@ -45,10 +48,35 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run test:unit` | Node unit tests (inventory + payment + delivery + membership + bottle tops + notifications + supabase stub/migrations) |
 | `npm run test:e2e` | Playwright suite (shell smoke + full journey + matrix) |
 | `npm run test:e2e:journey` | Func QA journey + cancel/pay-fail matrix only |
+| `npm run test:pwa-smoke` | Manifest + icons (+ SW when `EXPECT_SW=1`) against `BASE_URL` |
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `test:unit` → `build` → `test:e2e` on pull requests and pushes to `main` (`ubuntu-24.04`). E2E includes the Func QA journey (onboarding → bottles → shared order → pay stub → track) and the cancel/pay-fail matrix.
+GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `test:unit` → `build` → **PWA install smoke** → `test:e2e` on pull requests and pushes to `main` (`ubuntu-24.04`). E2E includes the Func QA journey (onboarding → bottles → shared order → pay stub → track) and the cancel/pay-fail matrix. PWA smoke serves the production build so `@ducanh2912/next-pwa` emits `sw.js` (disabled under `next dev`).
+
+## Vercel preview (prep only)
+
+No Vercel account required for this repo prep. When James links the project:
+
+1. Import `jamesrmcprime/heybar` on Vercel (framework auto-detects Next.js; see `vercel.json` for PWA/manifest headers).
+2. Copy env names from `.env.example` into Preview (and later Production). Stub secret is fine for Preview; leave Supabase / live payment blank until owner keys exist.
+3. Do **not** attach custom domain/DNS here — owner decision (OPEN).
+
+### PWA install smoke on a preview URL
+
+After a Preview deployment exists:
+
+```bash
+BASE_URL=https://<your-preview>.vercel.app EXPECT_SW=1 npm run test:pwa-smoke
+```
+
+Locally (after `npm run build && npm start`):
+
+```bash
+EXPECT_SW=1 BASE_URL=http://127.0.0.1:3000 npm run test:pwa-smoke
+```
+
+Checks: `/manifest.webmanifest` (name/short_name/standalone/icons), icon HTTP 200s, `link[rel=manifest]` on `/`, and `/sw.js` when `EXPECT_SW=1`. Install prompts remain browser/OS gated.
 
 ## Catalogue seed
 
