@@ -8,6 +8,7 @@ Night Seal drinker shell: **Home · Bottles · Friends · Orders · Profile**. C
 
 - Next.js (App Router) + TypeScript
 - Night Seal design tokens (`src/styles/design-tokens.css`)
+- Self-hosted fonts (`src/fonts/` via `next/font/local`) — no Google Fonts fetch at build time
 - PWA via `@ducanh2912/next-pwa` (service worker in production builds)
 - Playwright E2E (`e2e/`) — full journey + cancel/pay-fail matrix in CI
 - Payment & delivery adapters are **stubs** — provider / model / territory still OPEN
