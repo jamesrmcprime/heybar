@@ -8,6 +8,10 @@
  *
  * Delivery fee schedule / territory remain OPEN (seed fee for demos).
  * Product discounts are separate (own cart only) — not mixed here.
+ *
+ * Cent allocation keeps
+ * participantsPayTotalZar + heyBarAbsorbsZar === deliveryFeeZar
+ * for every participant count (DEF-SO-4).
  */
 
 export type DeliveryParticipantInput = {
@@ -31,6 +35,7 @@ export type DeliveryParticipantShare = {
 export type DeliveryAbsorptionResult = {
   deliveryFeeZar: number;
   participantCount: number;
+  /** Typical equal share (fee ÷ n, rounded) — per-row may differ by 1¢ */
   equalShareZar: number;
   participants: DeliveryParticipantShare[];
   /** Sum of absorbed gaps — HeyBar pays this */
@@ -44,9 +49,16 @@ export function roundZar(amount: number): number {
   return Math.round(amount * 100) / 100;
 }
 
+function centsToZar(cents: number): number {
+  return cents / 100;
+}
+
 /**
  * Compute equal delivery split + per-participant absorption.
  * Throws if participantCount < 1 or fee is negative.
+ *
+ * Equal shares are allocated in integer cents so they sum exactly to the
+ * fee; each participant's pays + absorb equals their equal share.
  */
 export function computeDeliveryAbsorption(
   deliveryFeeZar: number,
@@ -60,35 +72,39 @@ export function computeDeliveryAbsorption(
   }
 
   const participantCount = participants.length;
+  const feeCents = Math.round(deliveryFeeZar * 100);
+  const baseCents = Math.floor(feeCents / participantCount);
+  const remainderCents = feeCents - baseCents * participantCount;
   const equalShareZar = roundZar(deliveryFeeZar / participantCount);
 
-  const shares: DeliveryParticipantShare[] = participants.map((p) => {
+  let payCentsTotal = 0;
+  let absorbCentsTotal = 0;
+
+  const shares: DeliveryParticipantShare[] = participants.map((p, index) => {
+    const equalShareCents = baseCents + (index < remainderCents ? 1 : 0);
     const pct = clampPct(p.deliveryDiscountPct);
-    const participantPaysZar = roundZar(equalShareZar * (1 - pct / 100));
-    const absorbedZar = roundZar(equalShareZar - participantPaysZar);
+    const participantPaysCents = Math.round(
+      equalShareCents * (1 - pct / 100),
+    );
+    const absorbedCents = equalShareCents - participantPaysCents;
+    payCentsTotal += participantPaysCents;
+    absorbCentsTotal += absorbedCents;
     return {
       id: p.id,
       deliveryDiscountPct: pct,
-      equalShareZar,
-      participantPaysZar,
-      absorbedZar,
+      equalShareZar: centsToZar(equalShareCents),
+      participantPaysZar: centsToZar(participantPaysCents),
+      absorbedZar: centsToZar(absorbedCents),
     };
   });
 
-  const heyBarAbsorbsZar = roundZar(
-    shares.reduce((sum, s) => sum + s.absorbedZar, 0),
-  );
-  const participantsPayTotalZar = roundZar(
-    shares.reduce((sum, s) => sum + s.participantPaysZar, 0),
-  );
-
   return {
-    deliveryFeeZar: roundZar(deliveryFeeZar),
+    deliveryFeeZar: centsToZar(feeCents),
     participantCount,
     equalShareZar,
     participants: shares,
-    heyBarAbsorbsZar,
-    participantsPayTotalZar,
+    heyBarAbsorbsZar: centsToZar(absorbCentsTotal),
+    participantsPayTotalZar: centsToZar(payCentsTotal),
   };
 }
 

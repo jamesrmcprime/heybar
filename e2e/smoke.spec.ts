@@ -384,10 +384,13 @@ test.describe("shared orders + delivery absorption", () => {
     await expect(page.getByText("Absolut")).toBeVisible();
     await expect(page.getByText(/Sealed bottles only/i)).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /Pay share/i }),
-    ).toBeDisabled();
+      page.getByRole("button", { name: /Pay share \(stub\)/i }),
+    ).toBeEnabled();
     await expect(
       page.getByText(/Delivery territory \/ fee schedule · OPEN/i),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/Pays R62\.50 \+ absorbs R37\.50 = R100 fee/i),
     ).toBeVisible();
   });
 
@@ -399,6 +402,98 @@ test.describe("shared orders + delivery absorption", () => {
     await expect(page.getByText(/Tops not spent here/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /redeem/i })).toHaveCount(0);
     await expect(page.getByText(/XP > ?1,?000/i)).toHaveCount(0);
+  });
+
+  test("P0 leave/abandon keeps other payment states intact", async ({
+    page,
+  }) => {
+    await page.goto("/orders/ORD-8F2A");
+    const carts = page.getByLabel("Participant carts");
+    await expect(carts.getByText("Riley M")).toBeVisible();
+    await expect(carts.getByText(/Locked in · Paid/i)).toBeVisible();
+    await expect(carts.getByText("Alex K")).toBeVisible();
+    await expect(carts.getByText("Dave Person")).toBeVisible();
+
+    await page.getByRole("button", { name: "Leave order" }).click();
+
+    await expect(
+      page.getByText(/You left this shared order/i),
+    ).toBeVisible();
+    await expect(carts.getByText(/Left order · Cancelled/i)).toBeVisible();
+    await expect(page.getByText(/Shared · 3 people/i)).toBeVisible();
+    await expect(page.getByText(/Fee R100 ÷ 3 =/i)).toBeVisible();
+    // Riley paid untouched; Alex / Dave still awaiting
+    await expect(carts.getByText(/Locked in · Paid/i)).toBeVisible();
+    await expect(carts.getByText("Alex K")).toBeVisible();
+    await expect(carts.getByText("Dave Person")).toBeVisible();
+    await expect(carts.getByText(/Still choosing · Awaiting pay/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Pay share/i }),
+    ).toHaveCount(0);
+    // Fee identity after awkward ÷3
+    await expect(page.getByText(/= R100 fee/i)).toBeVisible();
+  });
+
+  test("P0 pay stub fail isolates failed state to self", async ({ page }) => {
+    await page.goto("/orders/ORD-8F2A");
+    const carts = page.getByLabel("Participant carts");
+    const samCard = page.locator('[data-participant="part-sam"]');
+    const alexCard = page.locator('[data-participant="part-alex"]');
+    const rileyCard = page.locator('[data-participant="part-riley"]');
+    const daveCard = page.locator('[data-participant="part-dave"]');
+    await expect(rileyCard.getByText(/Locked in · Paid/i)).toBeVisible();
+    await expect(samCard.getByText(/Locked in · Awaiting pay/i)).toBeVisible();
+    await expect(alexCard.getByText(/Locked in · Awaiting pay/i)).toBeVisible();
+
+    await page.getByRole("button", { name: /Pay share \(stub\)/i }).click();
+
+    await expect(page.getByText(/Payment failed for you only/i)).toBeVisible();
+    await expect(samCard.getByText(/Locked in · Payment failed/i)).toBeVisible();
+    await expect(
+      page.getByText(/Payment adapter stub — provider OPEN/i),
+    ).toBeVisible();
+    // Others untouched
+    await expect(rileyCard.getByText(/Locked in · Paid/i)).toBeVisible();
+    await expect(alexCard.getByText(/Locked in · Awaiting pay/i)).toBeVisible();
+    await expect(daveCard.getByText(/Still choosing · Awaiting pay/i)).toBeVisible();
+    await expect(carts.getByText("Alex K")).toBeVisible();
+    await expect(carts.getByText("Dave Person")).toBeVisible();
+    // Still 4 on delivery split
+    await expect(page.getByText(/Shared · 4 people/i)).toBeVisible();
+    await expect(page.getByText(/Fee R100 ÷ 4 = R25 each/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Retry pay \(stub\)/i }),
+    ).toBeEnabled();
+  });
+
+  test("P0 remove participant recalculates absorption", async ({ page }) => {
+    await page.goto("/orders/ORD-8F2A");
+    const carts = page.getByLabel("Participant carts");
+    const daveCard = page.locator('[data-participant="part-dave"]');
+    await expect(daveCard).toBeVisible();
+    await expect(daveCard.getByText(/Still choosing · Awaiting pay/i)).toBeVisible();
+
+    await daveCard.getByRole("button", { name: "Remove from order" }).click();
+
+    await expect(page.locator('[data-participant="part-dave"]')).toHaveCount(0);
+    await expect(carts.getByText("Dave Person")).toHaveCount(0);
+    await expect(page.getByText(/Shared · 3 people/i)).toBeVisible();
+    await expect(page.getByText(/Fee R100 ÷ 3 =/i)).toBeVisible();
+    // Remaining carts + Riley paid intact
+    await expect(carts.getByText("Sam Lady")).toBeVisible();
+    await expect(carts.getByText("Alex K")).toBeVisible();
+    await expect(carts.getByText("Riley M")).toBeVisible();
+    await expect(carts.getByText(/Locked in · Paid/i)).toBeVisible();
+    await expect(carts.getByText(/Locked in · Awaiting pay/i).first()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Pay share \(stub\)/i }),
+    ).toBeEnabled();
+    // No remove on paid Riley
+    const rileyCard = page.locator('[data-participant="part-riley"]');
+    await expect(
+      rileyCard.getByRole("button", { name: "Remove from order" }),
+    ).toHaveCount(0);
+    await expect(page.getByText(/= R100 fee/i)).toBeVisible();
   });
 });
 
