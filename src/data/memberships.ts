@@ -1,6 +1,7 @@
 /**
- * Membership tiers from the product brief.
- * Fees & discounts are display config only — billing UX follows backend.
+ * Membership tiers from the product brief (business-rules §3).
+ * Product/delivery % applied by src/lib/membership-discount.ts and
+ * src/lib/delivery-absorption.ts — never invent rates outside this table.
  */
 
 export type MembershipTier = {

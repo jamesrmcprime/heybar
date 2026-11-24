@@ -1,8 +1,8 @@
 /**
  * Orders + shared-order seed for Night Seal Orders tab.
  * Sealed bottles only. Delivery fee is a demo seed — territory/pricing OPEN.
- * Totals are server-stubbed via computeDeliveryAbsorption / line helpers —
- * do not trust client-entered money.
+ * Totals are server-stubbed via computeDeliveryAbsorption +
+ * applyMembershipProductDiscount — do not trust client-entered money.
  */
 
 import { BOTTLE_SEED, type Bottle } from "./bottles";
@@ -13,6 +13,10 @@ import {
   computeDeliveryAbsorption,
   type DeliveryAbsorptionResult,
 } from "@/lib/delivery-absorption";
+import {
+  applyMembershipProductDiscount,
+  roundZar,
+} from "@/lib/membership-discount";
 
 export type OrderKind = "shared" | "solo";
 
@@ -233,14 +237,10 @@ function resolvePerson(
   };
 }
 
-function roundZar(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
 export function resolveParticipant(p: ParticipantSeed): ResolvedParticipant {
   const tier = membershipById(p.membershipId);
   const person = resolvePerson(p.personKey);
-  const lines = p.lines.map((line) => {
+  const pricedLines = p.lines.map((line) => {
     const bottle = getBottle(line.bottleId);
     if (!bottle) {
       throw new Error(`Missing bottle seed: ${line.bottleId}`);
@@ -248,15 +248,32 @@ export function resolveParticipant(p: ParticipantSeed): ResolvedParticipant {
     return {
       bottle,
       qty: line.qty,
-      lineListZar: roundZar(bottle.priceZar * line.qty),
+      listUnitZar: bottle.priceZar,
     };
   });
-  const listSubtotalZar = roundZar(
-    lines.reduce((sum, l) => sum + l.lineListZar, 0),
+
+  // Brief-table product % via membership-discount (sealed bottles only).
+  const discounted = applyMembershipProductDiscount(
+    p.membershipId,
+    pricedLines.map((l) => ({
+      bottleId: l.bottle.id,
+      qty: l.qty,
+      listUnitZar: l.listUnitZar,
+    })),
   );
-  const productSubtotalZar = roundZar(
-    listSubtotalZar * (1 - tier.productDiscountPct / 100),
-  );
+  if (!discounted.ok) {
+    throw new Error(
+      `Product discount failed (${discounted.reason})${
+        discounted.bottleId ? `: ${discounted.bottleId}` : ""
+      }`,
+    );
+  }
+
+  const lines = pricedLines.map((l, index) => ({
+    bottle: l.bottle,
+    qty: l.qty,
+    lineListZar: discounted.lines[index]?.lineListZar ?? 0,
+  }));
   const bottleCount = lines.reduce((sum, l) => sum + l.qty, 0);
 
   return {
@@ -264,14 +281,14 @@ export function resolveParticipant(p: ParticipantSeed): ResolvedParticipant {
     displayName: person.displayName,
     initials: person.initials,
     membershipId: p.membershipId,
-    membershipName: tier.name,
-    productDiscountPct: tier.productDiscountPct,
+    membershipName: discounted.membershipName,
+    productDiscountPct: discounted.productDiscountPct,
     deliveryDiscountPct: tier.deliveryDiscountPct,
     locked: p.locked,
     paymentState: p.paymentState,
     lines,
-    listSubtotalZar,
-    productSubtotalZar,
+    listSubtotalZar: discounted.listSubtotalZar,
+    productSubtotalZar: discounted.productSubtotalZar,
     bottleCount,
   };
 }
