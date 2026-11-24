@@ -41,23 +41,33 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Port 3001 — keep :3000 free for Playwright webServer (npm run dev).
       - name: PWA install smoke (production)
         run: |
-          npm run start -- --hostname 127.0.0.1 --port 3000 &
+          set -euo pipefail
+          npm run start -- --hostname 127.0.0.1 --port 3001 &
           SERVER_PID=$!
-          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          cleanup() {
+            kill "$SERVER_PID" 2>/dev/null || true
+            # npm may leave next-server children; free the port for later steps
+            if command -v fuser >/dev/null 2>&1; then
+              fuser -k 3001/tcp 2>/dev/null || true
+            fi
+            wait "$SERVER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
           for i in $(seq 1 90); do
-            if curl -sf http://127.0.0.1:3000/ >/dev/null; then
+            if curl -sf http://127.0.0.1:3001/ >/dev/null; then
               break
             fi
-            if ! kill -0 $SERVER_PID 2>/dev/null; then
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then
               echo "next start exited before becoming ready"
               exit 1
             fi
             sleep 1
           done
-          curl -sf http://127.0.0.1:3000/ >/dev/null
-          EXPECT_SW=1 BASE_URL=http://127.0.0.1:3000 npm run test:pwa-smoke
+          curl -sf http://127.0.0.1:3001/ >/dev/null
+          EXPECT_SW=1 BASE_URL=http://127.0.0.1:3001 npm run test:pwa-smoke
 
       - name: E2E journey + cancel/pay-fail matrix
         run: npm run test:e2e

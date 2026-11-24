@@ -53,7 +53,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `test:unit` → `build` → **PWA install smoke** → `test:e2e` on pull requests and pushes to `main` (`ubuntu-24.04`). E2E includes the Func QA journey (onboarding → bottles → shared order → pay stub → track) and the cancel/pay-fail matrix. PWA smoke serves the production build so `@ducanh2912/next-pwa` emits `sw.js` (disabled under `next dev`).
+GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `test:unit` → `build` → **PWA install smoke** → `test:e2e` on pull requests and pushes to `main` (`ubuntu-24.04`). E2E includes the Func QA journey (onboarding → bottles → shared order → pay stub → track) and the cancel/pay-fail matrix. PWA smoke serves the production build on **:3001** (so Playwright can still bind `:3000`) and asserts `sw.js` (disabled under `next dev`).
 
 ## Vercel preview (prep only)
 
