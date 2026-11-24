@@ -1,13 +1,19 @@
 /**
  * Display stub for Account / Profile / Guild shells.
- * Balances & XP are config-demo only — no earn/debit logic.
+ * XP is config-demo only — no earn/debit logic.
+ * Bottle Tops balances are derived from the append-only ledger
+ * (`src/data/bottle-tops.ts`); blueTops/goldTops mirror that fixture.
  */
 
 import { GUILDS } from "./guilds";
 import { MEMBERSHIP_TIERS } from "./memberships";
 import { rankForPoints } from "./ranks";
 
+/** Stable demo user id for ledger rows. */
+export const DEMO_USER_ID = "user-sam";
+
 export const DEMO_USER = {
+  id: DEMO_USER_ID,
   firstName: "Sam",
   lastName: "Lady",
   initials: "SL",
@@ -20,6 +26,7 @@ export const DEMO_USER = {
   guildId: "gin",
   /** Display XP within configured ranks (≤1000). */
   xp: 186,
+  /** Must match derived ledger balances (no free-edit). */
   blueTops: 120,
   goldTops: 8,
 } as const;
