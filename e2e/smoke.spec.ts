@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * Drinker shell smoke tests — structure only.
  * Do not treat screenshots here as approved Night Seal baselines.
- * Inventory/payment logic unit tests: src/lib/*.test.ts (npm run test:unit).
+ * Inventory/payment/bottle-tops unit tests: src/lib/*.test.ts (npm run test:unit).
  */
 
 const TABS = [
@@ -153,6 +153,11 @@ const ACCOUNT_GUILD_REWARD_ROUTES = [
     path: "/rewards/gin-l3",
     heading: /^Reward$/,
   },
+  {
+    name: "Bottle Tops ledger",
+    path: "/profile/bottle-tops",
+    heading: /^Bottle Tops$/,
+  },
 ] as const;
 
 test.describe("account + guild + rewards shells", () => {
@@ -185,8 +190,31 @@ test.describe("account + guild + rewards shells", () => {
     await expect(page.getByText("Grand Reserve")).toBeVisible();
     await expect(page.getByText(/700–1[\s,]?000/)).toBeVisible();
     await expect(page.getByText(/XP > 1,000 · OPEN/i)).toBeVisible();
-    await expect(page.getByText(/Earn \/ debit rules · OPEN/i)).toBeVisible();
+    await expect(page.getByText(/earn \/ debit · OPEN/i)).toBeVisible();
     await expect(page.getByText("Botanical Beginner")).toBeVisible();
+  });
+
+  test("bottle tops ledger shows derived balances and history shell", async ({
+    page,
+  }) => {
+    await page.goto("/profile/bottle-tops");
+    await expect(
+      page.getByRole("heading", { name: /^Bottle Tops$/ }),
+    ).toBeVisible();
+    await expect(page.getByText("120").first()).toBeVisible();
+    await expect(page.getByText("8").first()).toBeVisible();
+    await expect(page.getByText(/Admin credit/i).first()).toBeVisible();
+    await expect(page.getByText(/earn \/ redeem \/ conversion · OPEN/i)).toBeVisible();
+    await expect(page.getByText(/cocktail/i)).toHaveCount(0);
+  });
+
+  test("profile links to bottle tops ledger with derived balances", async ({
+    page,
+  }) => {
+    await page.goto("/profile");
+    await expect(page.getByText(/Derived from append-only ledger/i)).toBeVisible();
+    await page.getByRole("link", { name: "Ledger →" }).click();
+    await expect(page).toHaveURL(/\/profile\/bottle-tops/);
   });
 
   test("rewards list shows Gin L1–L5 seed table", async ({ page }) => {

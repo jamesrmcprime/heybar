@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { StackHeader } from "@/components/drinker/StackHeader";
 import { GuildBadge } from "@/components/flow/GuildBadge";
 import { RewardBadge } from "@/components/rewards/RewardBadge";
+import { demoBottleTopBalances } from "@/data/bottle-tops";
 import { GUILDS } from "@/data/guilds";
 import { DEMO_USER, demoRank } from "@/data/demo-user";
 import { RANKS } from "@/data/ranks";
@@ -36,6 +37,7 @@ export default async function GuildDetailPage({ params }: PageProps) {
   const isDemoGuild = guild.id === DEMO_USER.guildId;
   const rank = isDemoGuild ? demoRank() : null;
   const xp = isDemoGuild ? DEMO_USER.xp : null;
+  const tops = isDemoGuild ? demoBottleTopBalances() : null;
   const progressPct =
     rank && xp != null
       ? Math.min(100, Math.round((xp / rank.maxPoints) * 100))
@@ -106,25 +108,26 @@ export default async function GuildDetailPage({ params }: PageProps) {
         </section>
 
         <section className={styles.panel}>
-          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
-            Bottle Tops
+          <div className="hb-section-label" style={{ marginBottom: 4 }}>
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Bottle Tops</span>
+            {isDemoGuild ? (
+              <Link href="/profile/bottle-tops" className="hb-caption">
+                Ledger →
+              </Link>
+            ) : null}
           </div>
           <div className={styles.tops}>
             <div className={`${styles.topBox} ${styles.blue}`}>
               <div className="hb-caption">Blue</div>
-              <div className={styles.n}>
-                {isDemoGuild ? DEMO_USER.blueTops : "—"}
-              </div>
+              <div className={styles.n}>{tops ? tops.blue : "—"}</div>
             </div>
             <div className={`${styles.topBox} ${styles.gold}`}>
               <div className="hb-caption">Gold</div>
-              <div className={styles.n}>
-                {isDemoGuild ? DEMO_USER.goldTops : "—"}
-              </div>
+              <div className={styles.n}>{tops ? tops.gold : "—"}</div>
             </div>
           </div>
           <p className="hb-caption" style={{ marginTop: 6 }}>
-            Earn / debit rules · OPEN
+            Derived balances · earn / debit · OPEN
           </p>
         </section>
 

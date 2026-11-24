@@ -40,7 +40,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Production build + PWA assets |
 | `npm start` | Serve production build |
 | `npm run lint` | ESLint |
-| `npm run test:unit` | Node unit tests (inventory + payment stub + membership discount) |
+| `npm run test:unit` | Node unit tests (inventory + payment + membership + bottle tops) |
 | `npm run test:e2e` | Playwright smoke suite |
 
 ## CI
@@ -74,10 +74,15 @@ Nested under Profile tab (tab bar stays; Profile marked active):
 |---|---|
 | `/account` | Contact / security / membership entry |
 | `/guild/[guildId]` | Guild detail — ranks ≤1000, Tops, rewards preview |
+| `/profile/bottle-tops` | Bottle Tops ledger — derived Blue/Gold + append-only history |
 | `/rewards?guild=` | Rewards list from seed config (5 levels × Guild) |
 | `/rewards/[rewardId]` | Reward detail — claim CTA disabled shell |
 
-Seed data: `src/data/ranks.ts`, `src/data/rewards.ts`, `src/data/demo-user.ts`.
+Seed data: `src/data/ranks.ts`, `src/data/rewards.ts`, `src/data/demo-user.ts`, `src/data/bottle-tops.ts`.
+
+## Bottle Tops ledger shell
+
+`src/lib/bottle-tops.ts` — append-only Blue/Gold history; balances derived (no free-edit). Admin credit stub only. Earn / redeem / conversion remain OPEN (not invented).
 
 ## Friends graph shells
 

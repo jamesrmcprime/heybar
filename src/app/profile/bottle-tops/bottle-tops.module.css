@@ -1,0 +1,89 @@
+.main {
+  gap: 8px;
+}
+
+.panel {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-md);
+  padding: 10px 12px;
+}
+
+.tops {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.topBox {
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-sm);
+  padding: 8px 10px;
+}
+
+.n {
+  font-family: var(--hb-font-mono);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.blue .n {
+  color: var(--hb-blue-top);
+}
+
+.gold .n {
+  color: var(--hb-gold-top);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hb-line);
+}
+
+.row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.rowMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.delta {
+  font-family: var(--hb-font-mono);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tagBlue,
+.tagGold {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tagBlue {
+  color: var(--hb-blue-top);
+}
+
+.tagGold {
+  color: var(--hb-gold-top);
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--hb-ash);
+}

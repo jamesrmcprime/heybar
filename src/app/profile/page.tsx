@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TopBar } from "@/components/drinker/TopBar";
 import { RewardBadge } from "@/components/rewards/RewardBadge";
+import { demoBottleTopBalances } from "@/data/bottle-tops";
 import {
   DEMO_USER,
   demoGuild,
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const membership = demoMembership();
   const guild = demoGuild();
   const rank = demoRank();
+  const tops = demoBottleTopBalances();
   const ginRewards = rewardsForGuild(guild.id);
   const progressPct = Math.min(
     100,
@@ -115,21 +117,24 @@ export default function ProfilePage() {
         </section>
 
         <section className={styles.panel}>
-          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>
-            Bottle Tops
+          <div className="hb-section-label">
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Bottle Tops</span>
+            <Link href="/profile/bottle-tops" className="hb-caption">
+              Ledger →
+            </Link>
           </div>
           <div className={styles.tops}>
             <div className={`${styles.topBox} ${styles.blue}`}>
               <div className="hb-caption">Blue</div>
-              <div className={styles.n}>{DEMO_USER.blueTops}</div>
+              <div className={styles.n}>{tops.blue}</div>
             </div>
             <div className={`${styles.topBox} ${styles.gold}`}>
               <div className="hb-caption">Gold</div>
-              <div className={styles.n}>{DEMO_USER.goldTops}</div>
+              <div className={styles.n}>{tops.gold}</div>
             </div>
           </div>
           <p className="hb-caption" style={{ marginTop: 8 }}>
-            Earn/redeem rules OPEN — balances are display stubs only.
+            Derived from append-only ledger · earn/redeem OPEN
           </p>
         </section>
 
@@ -149,6 +154,12 @@ export default function ProfilePage() {
               Guild detail
             </Link>
             <span className="hb-caption">Ranks · Tops →</span>
+          </div>
+          <div className={styles.kv}>
+            <Link href="/profile/bottle-tops" className="hb-muted">
+              Bottle Tops ledger
+            </Link>
+            <span className="hb-caption">History →</span>
           </div>
           <div className={styles.kv}>
             <Link href={`/rewards?guild=${guild.id}`} className="hb-muted">

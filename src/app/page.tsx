@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { TopBar } from "@/components/drinker/TopBar";
+import { demoBottleTopBalances } from "@/data/bottle-tops";
+import { demoRank } from "@/data/demo-user";
 import styles from "./home.module.css";
 
 export default function HomePage() {
+  const tops = demoBottleTopBalances();
+  const rank = demoRank();
+
   return (
     <>
       <TopBar showBrandMark cartBadge />
@@ -34,15 +39,15 @@ export default function HomePage() {
           <div className={styles.statStrip}>
             <div className={styles.stat}>
               <div className={styles.statLabel}>Rank</div>
-              <div className={styles.statVal}>Sipper</div>
+              <div className={styles.statVal}>{rank.name}</div>
             </div>
             <div className={styles.stat}>
               <div className={styles.statLabel}>Blue Tops</div>
-              <div className={`${styles.statVal} ${styles.blue}`}>120</div>
+              <div className={`${styles.statVal} ${styles.blue}`}>{tops.blue}</div>
             </div>
             <div className={styles.stat}>
               <div className={styles.statLabel}>Gold Tops</div>
-              <div className={`${styles.statVal} ${styles.gold}`}>8</div>
+              <div className={`${styles.statVal} ${styles.gold}`}>{tops.gold}</div>
             </div>
           </div>
         </section>
