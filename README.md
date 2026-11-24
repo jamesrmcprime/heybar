@@ -40,7 +40,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Production build + PWA assets |
 | `npm start` | Serve production build |
 | `npm run lint` | ESLint |
-| `npm run test:unit` | Node unit tests (inventory + payment stub) |
+| `npm run test:unit` | Node unit tests (inventory + payment stub + membership discount) |
 | `npm run test:e2e` | Playwright smoke suite |
 
 ## CI
@@ -101,7 +101,11 @@ Orders tab stays active on `/orders/[orderId]`:
 | `/orders` | Active + past list (shared & solo) |
 | `/orders/[orderId]` | Order room — participant carts, delivery split, HeyBar absorption |
 
-Math: `src/lib/delivery-absorption.ts` (equal split first; membership delivery % on own share; HeyBar absorbs gap — not redistributed; cent identity kept). Seed: `src/data/orders.ts` (Friday night run = brief §2.3 example: R100 ÷ 4, absorbs R37.50). Sealed bottles only. Live payment **provider** remains OPEN (`checkoutUrl` always `null`).
+Math:
+- Delivery: `src/lib/delivery-absorption.ts` (equal split first; membership delivery % on own share; HeyBar absorbs gap — not redistributed; cent identity kept).
+- Product: `src/lib/membership-discount.ts` (brief-table % only — Straight Up 0% / Neat 5% / The Reserve 15% / Top Shelf 25%; own sealed lines only; no reward stacking).
+
+Seed: `src/data/orders.ts` (Friday night run = brief §2.3 example: R100 ÷ 4, absorbs R37.50). Sealed bottles only. Live payment **provider** remains OPEN (`checkoutUrl` always `null`).
 
 Order-room stub mutations (local UI state, not a live backend):
 
