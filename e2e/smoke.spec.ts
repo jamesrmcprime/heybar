@@ -208,13 +208,28 @@ test.describe("account + guild + rewards shells", () => {
     await expect(page.getByText(/cocktail/i)).toHaveCount(0);
   });
 
-  test("profile links to bottle tops ledger with derived balances", async ({
+  test("profile matches Night Seal chrome (settings gear, balances, no shells)", async ({
     page,
   }) => {
     await page.goto("/profile");
-    await expect(page.getByText(/Derived from append-only ledger/i)).toBeVisible();
-    await page.getByRole("link", { name: "Ledger →" }).click();
-    await expect(page).toHaveURL(/\/profile\/bottle-tops/);
+    await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Cart (stub)" })).toHaveCount(0);
+    await expect(page.getByText("Guild path")).toBeVisible();
+    await expect(page.getByText("120").first()).toBeVisible();
+    await expect(page.getByText("8").first()).toBeVisible();
+    await expect(page.getByText(/Account & shells/i)).toHaveCount(0);
+    await expect(page.getByText(/Derived from append-only ledger/i)).toHaveCount(
+      0,
+    );
+    await expect(page.getByRole("link", { name: "Ledger →" })).toHaveCount(0);
+    await page.getByRole("link", { name: "Settings" }).click();
+    await expect(page).toHaveURL(/\/account/);
+  });
+
+  test("friends tab has no developer footnote", async ({ page }) => {
+    await page.goto("/friends");
+    await expect(page.getByText(/Graph shell/i)).toHaveCount(0);
+    await expect(page.getByText(/invite math OPEN/i)).toHaveCount(0);
   });
 
   test("rewards list shows Gin L1–L5 seed table", async ({ page }) => {
