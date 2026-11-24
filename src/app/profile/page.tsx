@@ -30,7 +30,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <TopBar title="Profile" />
+      <TopBar title="Profile" action="settings" />
       <main className={`hb-main ${styles.main}`}>
         <div className={styles.hero}>
           <div className={styles.avatar}>{DEMO_USER.initials}</div>
@@ -53,9 +53,7 @@ export default function ProfilePage() {
             <span style={{ fontWeight: 700, fontSize: 13 }}>
               {guild.focus} reward badges
             </span>
-            <Link href={`/rewards?guild=${guild.id}`} className="hb-caption">
-              See all →
-            </Link>
+            <span className="hb-caption">Guild path</span>
           </div>
           <div className={styles.badgeRow}>
             {ginRewards.map((reward) => {
@@ -111,17 +109,11 @@ export default function ProfilePage() {
           <div className={styles.progress} aria-hidden="true">
             <i style={{ width: `${progressPct}%` }} />
           </div>
-          <p className="hb-caption" style={{ marginTop: 6 }}>
-            XP &gt; 1,000 · OPEN
-          </p>
         </section>
 
         <section className={styles.panel}>
           <div className="hb-section-label">
             <span style={{ fontWeight: 700, fontSize: 13 }}>Bottle Tops</span>
-            <Link href="/profile/bottle-tops" className="hb-caption">
-              Ledger →
-            </Link>
           </div>
           <div className={styles.tops}>
             <div className={`${styles.topBox} ${styles.blue}`}>
@@ -132,58 +124,6 @@ export default function ProfilePage() {
               <div className="hb-caption">Gold</div>
               <div className={styles.n}>{tops.gold}</div>
             </div>
-          </div>
-          <p className="hb-caption" style={{ marginTop: 8 }}>
-            Derived from append-only ledger · earn/redeem OPEN
-          </p>
-        </section>
-
-        <section className={styles.panel}>
-          <div className="hb-section-label">
-            <span style={{ fontWeight: 700, fontSize: 13 }}>Account &amp; shells</span>
-            <span className="hb-caption">Day 2</span>
-          </div>
-          <div className={styles.kv}>
-            <Link href="/account" className="hb-muted">
-              Account
-            </Link>
-            <span className="hb-caption">Contact →</span>
-          </div>
-          <div className={styles.kv}>
-            <Link href={`/guild/${guild.id}`} className="hb-muted">
-              Guild detail
-            </Link>
-            <span className="hb-caption">Ranks · Tops →</span>
-          </div>
-          <div className={styles.kv}>
-            <Link href="/profile/bottle-tops" className="hb-muted">
-              Bottle Tops ledger
-            </Link>
-            <span className="hb-caption">History →</span>
-          </div>
-          <div className={styles.kv}>
-            <Link href={`/rewards?guild=${guild.id}`} className="hb-muted">
-              Rewards
-            </Link>
-            <span className="hb-caption">List →</span>
-          </div>
-          <div className={styles.kv}>
-            <Link href="/profile/fields" className="hb-muted">
-              Profile fields
-            </Link>
-            <span className="hb-caption">Collect →</span>
-          </div>
-          <div className={styles.kv}>
-            <Link href="/auth/signup" className="hb-muted">
-              Sign up stub
-            </Link>
-            <span className="hb-caption">Methods OPEN →</span>
-          </div>
-          <div className={styles.kv}>
-            <Link href="/onboarding/personal" className="hb-muted">
-              Onboarding
-            </Link>
-            <span className="hb-caption">5 steps →</span>
           </div>
         </section>
       </main>

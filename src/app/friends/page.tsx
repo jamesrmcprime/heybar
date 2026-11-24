@@ -6,7 +6,6 @@ import {
   discoverPeople,
   incomingRequests,
 } from "@/data/friends";
-import styles from "./friends.module.css";
 
 export const metadata: Metadata = {
   title: "Friends",
@@ -26,10 +25,6 @@ export default function FriendsPage() {
           buddies={buddies()}
           discover={discoverPeople()}
         />
-        <p className={`hb-caption ${styles.footnote}`}>
-          Graph shell · mutations not persisted · sealed bottles only · shared-order
-          invite math OPEN until next slice
-        </p>
       </main>
     </>
   );
