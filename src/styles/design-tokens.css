@@ -52,7 +52,7 @@
   --hb-scrim: rgba(11, 9, 8, 0.6);
   --hb-grain: rgba(242, 235, 225, 0.03);
 
-  /* ——— Typography families (pair with next/font) ——— */
+  /* ——— Typography families (pair with next/font/local in layout) ——— */
   --hb-font-display: "Syne", system-ui, sans-serif;
   --hb-font-body: "Manrope", system-ui, sans-serif;
   --hb-font-mono: "IBM Plex Mono", ui-monospace, monospace;

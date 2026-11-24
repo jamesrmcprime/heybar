@@ -1,25 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Manrope, Syne } from "next/font/google";
+import localFont from "next/font/local";
 import { AppShell } from "@/components/drinker/AppShell";
 import "./globals.css";
 
-const syne = Syne({
-  subsets: ["latin"],
-  weight: ["700", "800"],
+/**
+ * Self-hosted woff2 (src/fonts/) — avoids next/font/google network fetch
+ * during `next build` (flaky on CI runners when fonts.google.com is slow/blocked).
+ */
+const syne = localFont({
+  src: [
+    { path: "../fonts/syne-700.woff2", weight: "700", style: "normal" },
+    { path: "../fonts/syne-800.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-syne",
   display: "swap",
 });
 
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+const manrope = localFont({
+  src: [
+    { path: "../fonts/manrope-500.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/manrope-600.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/manrope-700.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-manrope",
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["500", "600"],
+const plexMono = localFont({
+  src: [
+    { path: "../fonts/ibm-plex-mono-500.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/ibm-plex-mono-600.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-plex-mono",
   display: "swap",
 });
