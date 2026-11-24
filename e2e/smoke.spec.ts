@@ -217,3 +217,93 @@ test.describe("account + guild + rewards shells", () => {
     await expect(page.getByText(/cocktail/i)).toHaveCount(0);
   });
 });
+
+const FRIENDS_ROUTES = [
+  { name: "Friends tab", path: "/friends", heading: /^Friends$/ },
+  {
+    name: "Friend request detail",
+    path: "/friends/requests/james-mcintosh",
+    heading: /^Request$/,
+  },
+  {
+    name: "Buddy detail",
+    path: "/friends/dave-person",
+    heading: /^Friend$/,
+  },
+  {
+    name: "Discover person detail",
+    path: "/friends/alice-card",
+    heading: /^Friend$/,
+  },
+  {
+    name: "Invite shell",
+    path: "/friends/invite/dave-person",
+    heading: /^Invite$/,
+  },
+] as const;
+
+test.describe("friends graph shells", () => {
+  for (const route of FRIENDS_ROUTES) {
+    test(`${route.name} renders with Friends tab active`, async ({ page }) => {
+      await page.goto(route.path);
+      await expect(
+        page.getByRole("heading", { name: route.heading }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Drinker" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "Friends", exact: true }),
+      ).toHaveAttribute("aria-current", "page");
+    });
+  }
+
+  test("Friends lists requests, buddies, and discover", async ({ page }) => {
+    await page.goto("/friends");
+    await expect(page.getByRole("heading", { name: "Requests" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Buddies" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Discover" })).toBeVisible();
+    await expect(page.getByText("James McIntosh")).toBeVisible();
+    await expect(page.getByText("Dave Person")).toBeVisible();
+    await expect(page.getByText("Alice Card")).toBeVisible();
+    await expect(page.getByPlaceholder("Find drinking buddies")).toBeVisible();
+  });
+
+  test("request detail Accept / Decline is shell-only", async ({ page }) => {
+    await page.goto("/friends/requests/james-mcintosh");
+    await expect(
+      page.getByRole("heading", { name: "James McIntosh" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Accept" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Decline" })).toBeVisible();
+    await page.getByRole("button", { name: "Accept" }).click();
+    await expect(page.getByText(/Accepted shell/i)).toBeVisible();
+  });
+
+  test("invite confirm is disabled (no shared-order math)", async ({
+    page,
+  }) => {
+    await page.goto("/friends/invite/dave-person");
+    await expect(page.getByText("Dave Person", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Shared-order invite · OPEN/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Confirm invite/i }),
+    ).toBeDisabled();
+    await expect(page.getByText(/Sealed bottles only/i)).toBeVisible();
+  });
+
+  test("search filters the friends graph", async ({ page }) => {
+    await page.goto("/friends");
+    await page.getByPlaceholder("Find drinking buddies").fill("Alice");
+    await expect(page.getByText("Alice Card")).toBeVisible();
+    await expect(page.getByText("James McIntosh")).toHaveCount(0);
+    await expect(page.getByText("Dave Person")).toHaveCount(0);
+  });
+
+  test("no cocktails surface on friends routes", async ({ page }) => {
+    await page.goto("/friends");
+    await expect(page.getByText(/cocktail/i)).toHaveCount(0);
+    await page.goto("/friends/invite/dave-person");
+    await expect(page.getByText(/cocktail/i)).toHaveCount(0);
+  });
+});

@@ -70,6 +70,19 @@ Nested under Profile tab (tab bar stays; Profile marked active):
 
 Seed data: `src/data/ranks.ts`, `src/data/rewards.ts`, `src/data/demo-user.ts`.
 
+## Friends graph shells
+
+Friends tab stays active on nested `/friends/*` routes:
+
+| Route | Purpose |
+|---|---|
+| `/friends` | Requests + Buddies + Discover (People folded in) |
+| `/friends/requests/[requestId]` | Incoming request detail — Accept / Decline shell |
+| `/friends/[personId]` | Buddy / Discover person detail |
+| `/friends/invite/[personId]` | Invite-to-shared-order shell (confirm disabled) |
+
+Seed: `src/data/friends.ts`. Graph mutations are local UI only — not persisted. Shared-order invite math is OPEN until the next slice.
+
 ## OPEN / stubs
 
 Do **not** invent:
@@ -83,6 +96,7 @@ Do **not** invent:
 - Delivery model / territory (see `src/lib/adapters/delivery.ts`)
 - XP &gt;1000 behaviour
 - Gin Level 5 official name (placeholder until Airtable)
+- Shared-order invite / delivery absorption math (Friends invite CTA is disabled shell)
 
 ## Visual QA
 
