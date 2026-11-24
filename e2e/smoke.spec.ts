@@ -388,11 +388,39 @@ test.describe("shared orders + delivery absorption", () => {
       page.getByRole("button", { name: /Pay share \(stub\)/i }),
     ).toBeEnabled();
     await expect(
+      page.getByRole("button", { name: /Simulate pay fail \(stub\)/i }),
+    ).toBeVisible();
+    await expect(
       page.getByText(/Delivery territory \/ fee schedule · OPEN/i),
     ).toBeVisible();
     await expect(
       page.getByText(/Pays R62\.50 \+ absorbs R37\.50 = R100 fee/i),
     ).toBeVisible();
+  });
+
+  test("simulate pay fail leaves other participants unchanged", async ({
+    page,
+  }) => {
+    await page.goto("/orders/ORD-8F2A");
+    await expect(
+      page.getByLabel("Participant carts").getByText("Riley M"),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel("Participant carts").getByText(/Paid/i),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: /Simulate pay fail \(stub\)/i }).click();
+    await expect(page.getByText(/Payment failed \(stub\)/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Pay share/i }),
+    ).toBeDisabled();
+
+    const peers = page.getByLabel(/Other participants unchanged/i);
+    await expect(peers).toBeVisible();
+    await expect(peers.getByText("Riley M")).toBeVisible();
+    await expect(peers.getByText(/Paid · unchanged/i)).toBeVisible();
+    await expect(peers.getByText("Alex K")).toBeVisible();
+    await expect(peers.getByText(/Awaiting pay · unchanged/i).first()).toBeVisible();
   });
 
   test("no cocktails or invented XP/Tops debit on orders", async ({
@@ -545,5 +573,96 @@ test.describe("inventory oversell skeleton (sealed bottles)", () => {
 
     const afterCommit = store.reserve([{ bottleId: "bottle-absolut", qty: 1 }]);
     expect(afterCommit.ok).toBe(false);
+  });
+});
+
+test.describe("payment adapter stub (intent + signed webhook)", () => {
+  test("intent / signed fail webhook / idempotency / peer isolation", async () => {
+    const { PaymentStore, signPaymentWebhook } = await import(
+      "../src/lib/adapters/payment"
+    );
+    const store = new PaymentStore("test-stub-secret");
+
+    const sam = await store.createIntent({
+      participantId: "part-sam",
+      orderId: "ORD-8F2A",
+      amountCents: 3600,
+      currency: "ZAR",
+    });
+    expect(sam.status).toBe("stub");
+    expect(sam.provider).toBe("OPEN");
+    expect(sam.checkoutUrl).toBeNull();
+    expect(sam.sessionId).toMatch(/^pay_sess_/);
+
+    const riley = await store.createIntent({
+      participantId: "part-riley",
+      orderId: "ORD-8F2A",
+      amountCents: 5000,
+      currency: "ZAR",
+    });
+
+    const failBody = JSON.stringify({
+      eventId: "evt_test_fail_1",
+      sessionId: sam.sessionId,
+      outcome: "failed",
+    });
+    const badSig = await store.handleWebhook(failBody, "sha256=deadbeef");
+    expect(badSig.accepted).toBe(false);
+
+    const missing = await store.handleWebhook(failBody, null);
+    expect(missing.accepted).toBe(false);
+
+    const sig = signPaymentWebhook(failBody, "test-stub-secret");
+    const failed = await store.handleWebhook(failBody, sig);
+    expect(failed.accepted).toBe(true);
+    if (!failed.accepted) return;
+    expect(failed.duplicate).toBe(false);
+    expect(failed.outcome).toBe("failed");
+    expect(failed.participantId).toBe("part-sam");
+
+    const again = await store.handleWebhook(failBody, sig);
+    expect(again.accepted).toBe(true);
+    if (!again.accepted) return;
+    expect(again.duplicate).toBe(true);
+    expect(store.listLedgerForParticipant("ORD-8F2A", "part-sam")).toHaveLength(
+      1,
+    );
+
+    expect(store.getSession(sam.sessionId)?.status).toBe("failed");
+    expect(store.getSession(riley.sessionId)?.status).toBe("open");
+    expect(
+      store.listLedgerForParticipant("ORD-8F2A", "part-riley"),
+    ).toHaveLength(0);
+
+    const paidBody = JSON.stringify({
+      eventId: "evt_test_paid_riley",
+      sessionId: riley.sessionId,
+      outcome: "succeeded",
+    });
+    const paid = await store.handleWebhook(
+      paidBody,
+      signPaymentWebhook(paidBody, "test-stub-secret"),
+    );
+    expect(paid.accepted).toBe(true);
+    expect(store.getSession(riley.sessionId)?.status).toBe("succeeded");
+    expect(store.getSession(sam.sessionId)?.status).toBe("failed");
+  });
+
+  test("simulateParticipantFail is self-contained", async () => {
+    const { PaymentStore } = await import("../src/lib/adapters/payment");
+    const store = new PaymentStore();
+
+    const { intent, webhook } = await store.simulateParticipantFail({
+      participantId: "part-sam",
+      orderId: "ORD-8F2A",
+      amountCents: 3600,
+      currency: "ZAR",
+    });
+
+    expect(intent.checkoutUrl).toBeNull();
+    expect(webhook.accepted).toBe(true);
+    if (!webhook.accepted) return;
+    expect(webhook.outcome).toBe("failed");
+    expect(store.getSession(intent.sessionId)?.status).toBe("failed");
   });
 });

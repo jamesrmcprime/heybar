@@ -100,15 +100,25 @@ Orders tab stays active on `/orders/[orderId]`:
 | `/orders` | Active + past list (shared & solo) |
 | `/orders/[orderId]` | Order room — participant carts, delivery split, HeyBar absorption |
 
-Math: `src/lib/delivery-absorption.ts` (equal split first; membership delivery % on own share; HeyBar absorbs gap — not redistributed; cent identity kept). Seed: `src/data/orders.ts` (Friday night run = brief §2.3 example: R100 ÷ 4, absorbs R37.50). Sealed bottles only.
+Math: `src/lib/delivery-absorption.ts` (equal split first; membership delivery % on own share; HeyBar absorbs gap — not redistributed; cent identity kept). Seed: `src/data/orders.ts` (Friday night run = brief §2.3 example: R100 ÷ 4, absorbs R37.50). Sealed bottles only. Live payment **provider** remains OPEN (`checkoutUrl` always `null`).
 
 Order-room stub mutations (local UI state, not a live backend):
 
 | Control | Behavior |
 |---|---|
 | **Leave order** | Marks self `cancelled`; delivery recalculated for remaining; others untouched |
-| **Pay share (stub)** | Calls `stubPaymentAdapter` → refuses charge → self `failed`; others untouched |
+| **Pay share (stub)** | `POST /api/payments/simulate-fail` (intent + signed fail webhook) → self `failed`; others untouched |
 | **Remove from order** | Drops an unpaid buddy; delivery equal-split recalculated; paid peers intact |
+
+## Payment adapter stub
+
+`src/lib/adapters/payment.ts` — intent/session + HMAC-signed webhook stub (idempotent by `eventId`). Live `checkoutUrl` is always `null`.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/payments/intent` | Create stub session (bound amount) |
+| `POST /api/payments/webhook` | Signed webhook (`x-heybar-payment-signature`) |
+| `POST /api/payments/simulate-fail` | QA: intent + failed webhook for one participant |
 
 ## OPEN / stubs
 
@@ -119,7 +129,7 @@ Do **not** invent:
 - Auth signup methods (see `src/lib/adapters/auth.ts`)
 - Age-verification provider (age gate is collect-only)
 - Final legal T&Cs copy (see `src/lib/adapters/legal.ts`)
-- Live payment gateway (adapter stub only — see `src/lib/adapters/payment.ts`)
+- Payment **provider** / refunds / dunning (adapter stub only — see `src/lib/adapters/payment.ts`)
 - Delivery model / territory / fee schedule (seed fee only; see `src/lib/adapters/delivery.ts`)
 - XP &gt;1000 behaviour
 - Gin Level 5 official name (placeholder until Airtable)
