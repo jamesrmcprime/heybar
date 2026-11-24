@@ -6,8 +6,8 @@ import { DiscoverRequestButton } from "@/components/friends/DiscoverRequestButto
 import { MEMBERSHIP_TIERS } from "@/data/memberships";
 import { RANKS } from "@/data/ranks";
 import {
-  allPeople,
   displayName,
+  friendsTabPeople,
   getPerson,
   personCaption,
 } from "@/data/friends";
@@ -18,7 +18,7 @@ type PageProps = {
 };
 
 export function generateStaticParams() {
-  return allPeople()
+  return friendsTabPeople()
     .filter((p) => p.relation !== "incoming_request")
     .map((p) => ({ personId: p.id }));
 }
@@ -36,7 +36,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function FriendPersonPage({ params }: PageProps) {
   const { personId } = await params;
   const person = getPerson(personId);
-  if (!person || person.relation === "incoming_request") notFound();
+  if (
+    !person ||
+    person.relation === "incoming_request" ||
+    person.relation === "order_peer"
+  ) {
+    notFound();
+  }
 
   const membership = MEMBERSHIP_TIERS.find((t) => t.id === person.membershipId);
   const rank = RANKS.find((r) => r.id === person.rankId);
