@@ -19,9 +19,17 @@ export type OrderKind = "shared" | "solo";
 export type PaymentState =
   | "awaiting_pay"
   | "paid"
+  | "failed"
   | "out_for_delivery"
   | "delivered"
   | "cancelled";
+
+/** Participants still on the delivery split (abandoned/cancelled are excluded). */
+export function participantsForDelivery(
+  participants: ParticipantSeed[],
+): ParticipantSeed[] {
+  return participants.filter((p) => p.paymentState !== "cancelled");
+}
 
 export type LineItemSeed = {
   bottleId: string;
@@ -269,13 +277,27 @@ export function resolveParticipant(p: ParticipantSeed): ResolvedParticipant {
 
 export function resolveOrder(order: OrderSeed): ResolvedOrder {
   const participants = order.participants.map(resolveParticipant);
-  const delivery = computeDeliveryAbsorption(
-    order.deliveryFeeZar,
-    participants.map((p) => ({
-      id: p.id,
-      deliveryDiscountPct: p.deliveryDiscountPct,
-    })),
-  );
+  const deliverySeeds = participantsForDelivery(order.participants);
+  const delivery =
+    deliverySeeds.length > 0
+      ? computeDeliveryAbsorption(
+          order.deliveryFeeZar,
+          deliverySeeds.map((seed) => {
+            const resolved = participants.find((p) => p.id === seed.id)!;
+            return {
+              id: resolved.id,
+              deliveryDiscountPct: resolved.deliveryDiscountPct,
+            };
+          }),
+        )
+      : {
+          deliveryFeeZar: roundZar(order.deliveryFeeZar),
+          participantCount: 0,
+          equalShareZar: 0,
+          participants: [],
+          heyBarAbsorbsZar: 0,
+          participantsPayTotalZar: 0,
+        };
   const self = participants.find((p) => {
     const seed = order.participants.find((s) => s.id === p.id);
     return seed?.personKey === "self";
@@ -297,6 +319,44 @@ export function resolveOrder(order: OrderSeed): ResolvedOrder {
     selfDeliveryPaysZar,
     selfPayableZar,
     totalBottles,
+  };
+}
+
+/** Mark one participant abandoned/cancelled — others untouched (DEF-SO-1). */
+export function abandonParticipant(
+  order: OrderSeed,
+  participantId: string,
+): OrderSeed {
+  return {
+    ...order,
+    participants: order.participants.map((p) =>
+      p.id === participantId ? { ...p, paymentState: "cancelled" } : p,
+    ),
+  };
+}
+
+/** Drop a participant from the order — remaining records intact (DEF-SO-3). */
+export function removeParticipant(
+  order: OrderSeed,
+  participantId: string,
+): OrderSeed {
+  return {
+    ...order,
+    participants: order.participants.filter((p) => p.id !== participantId),
+  };
+}
+
+/** Set payment state for one participant only — others untouched (DEF-SO-2). */
+export function setParticipantPaymentState(
+  order: OrderSeed,
+  participantId: string,
+  paymentState: PaymentState,
+): OrderSeed {
+  return {
+    ...order,
+    participants: order.participants.map((p) =>
+      p.id === participantId ? { ...p, paymentState } : p,
+    ),
   };
 }
 

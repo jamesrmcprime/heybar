@@ -13,7 +13,8 @@ concurrency:
 jobs:
   lint-build-e2e:
     name: lint · build · e2e
-    runs-on: ubuntu-latest
+    # Pin 24.04: ubuntu-latest is 26.04 and Playwright 1.51 cannot install Chromium deps there.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout
