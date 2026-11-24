@@ -1,9 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Smoke / visual-QA harness skeleton.
- * First-wave baselines (Home, Bottles, Friends, Orders, Profile) require
- * Visual QA + James authorization before locking screenshots.
+ * E2E harness — shell smoke (`smoke.spec.ts`) + Func QA journey/matrix
+ * (`journey.spec.ts`). First-wave visual baselines require Visual QA +
+ * James authorization before locking screenshots.
  */
 export default defineConfig({
   testDir: "./e2e",

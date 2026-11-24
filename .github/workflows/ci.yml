@@ -41,7 +41,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: E2E smoke
+      - name: E2E journey + cancel/pay-fail matrix
         run: npm run test:e2e
         env:
           CI: true

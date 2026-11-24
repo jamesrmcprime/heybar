@@ -9,7 +9,7 @@ Night Seal drinker shell: **Home · Bottles · Friends · Orders · Profile**. C
 - Next.js (App Router) + TypeScript
 - Night Seal design tokens (`src/styles/design-tokens.css`)
 - PWA via `@ducanh2912/next-pwa` (service worker in production builds)
-- Playwright smoke tests (`e2e/`)
+- Playwright E2E (`e2e/`) — full journey + cancel/pay-fail matrix in CI
 - Payment & delivery adapters are **stubs** — provider / model / territory still OPEN
 - Delivery status machine: preparation → assigned → pickup → in_transit → delivered (exception / soft-cancel side paths; no hard-deletes)
 
@@ -42,11 +42,12 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm start` | Serve production build |
 | `npm run lint` | ESLint |
 | `npm run test:unit` | Node unit tests (inventory + payment + delivery + membership + bottle tops) |
-| `npm run test:e2e` | Playwright smoke suite |
+| `npm run test:e2e` | Playwright suite (shell smoke + full journey + matrix) |
+| `npm run test:e2e:journey` | Func QA journey + cancel/pay-fail matrix only |
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `test:unit` → `build` → `test:e2e` on pull requests and pushes to `main` (`ubuntu-24.04`).
+GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `test:unit` → `build` → `test:e2e` on pull requests and pushes to `main` (`ubuntu-24.04`). E2E includes the Func QA journey (onboarding → bottles → shared order → pay stub → track) and the cancel/pay-fail matrix.
 
 ## Catalogue seed
 
