@@ -1,0 +1,320 @@
+/**
+ * Orders + shared-order seed for Night Seal Orders tab.
+ * Sealed bottles only. Delivery fee is a demo seed — territory/pricing OPEN.
+ * Totals are server-stubbed via computeDeliveryAbsorption / line helpers —
+ * do not trust client-entered money.
+ */
+
+import { BOTTLE_SEED, type Bottle } from "./bottles";
+import { DEMO_USER } from "./demo-user";
+import { FRIEND_PEOPLE, displayName, type FriendPerson } from "./friends";
+import { MEMBERSHIP_TIERS } from "./memberships";
+import {
+  computeDeliveryAbsorption,
+  type DeliveryAbsorptionResult,
+} from "@/lib/delivery-absorption";
+
+export type OrderKind = "shared" | "solo";
+
+export type PaymentState =
+  | "awaiting_pay"
+  | "paid"
+  | "out_for_delivery"
+  | "delivered"
+  | "cancelled";
+
+export type LineItemSeed = {
+  bottleId: string;
+  qty: number;
+};
+
+export type ParticipantSeed = {
+  id: string;
+  /** Demo user host, or friends graph person id */
+  personKey: "self" | string;
+  membershipId: string;
+  locked: boolean;
+  paymentState: PaymentState;
+  lines: LineItemSeed[];
+};
+
+export type OrderSeed = {
+  id: string;
+  kind: OrderKind;
+  title: string;
+  statusLabel: string;
+  pending: boolean;
+  note: string;
+  active: boolean;
+  /** Seed delivery fee ZAR — schedule OPEN */
+  deliveryFeeZar: number;
+  hostParticipantId: string;
+  participants: ParticipantSeed[];
+  /** Past solo orders may only need a display date */
+  pastDateLabel?: string;
+};
+
+/** Friday night run — brief §2.3 example cast (4 tiers, R100 delivery). */
+export const ORDERS: OrderSeed[] = [
+  {
+    id: "ORD-8F2A",
+    kind: "shared",
+    title: "Friday night run",
+    statusLabel: "Awaiting pay",
+    pending: true,
+    note: "Your share locked · delivery split applied",
+    active: true,
+    deliveryFeeZar: 100,
+    hostParticipantId: "part-sam",
+    participants: [
+      {
+        id: "part-sam",
+        personKey: "self",
+        membershipId: "top-shelf",
+        locked: true,
+        paymentState: "awaiting_pay",
+        lines: [
+          { bottleId: "bottle-tanqueray", qty: 1 },
+          { bottleId: "bottle-absolut", qty: 1 },
+        ],
+      },
+      {
+        id: "part-alex",
+        personKey: "alex-k",
+        membershipId: "straight-up",
+        locked: true,
+        paymentState: "awaiting_pay",
+        lines: [{ bottleId: "bottle-bacardi-superior", qty: 1 }],
+      },
+      {
+        id: "part-dave",
+        personKey: "dave-person",
+        membershipId: "neat",
+        locked: false,
+        paymentState: "awaiting_pay",
+        lines: [{ bottleId: "bottle-bombay-sapphire", qty: 1 }],
+      },
+      {
+        id: "part-riley",
+        personKey: "riley-m",
+        membershipId: "the-reserve",
+        locked: true,
+        paymentState: "paid",
+        lines: [{ bottleId: "bottle-jameson", qty: 1 }],
+      },
+    ],
+  },
+  {
+    id: "ORD-3C91",
+    kind: "solo",
+    title: "Quick top-up",
+    statusLabel: "Out for delivery",
+    pending: false,
+    note: "Driver assigned · ETA tonight",
+    active: true,
+    deliveryFeeZar: 30,
+    hostParticipantId: "part-solo-sam",
+    participants: [
+      {
+        id: "part-solo-sam",
+        personKey: "self",
+        membershipId: DEMO_USER.membershipId,
+        locked: true,
+        paymentState: "out_for_delivery",
+        lines: [{ bottleId: "bottle-absolut", qty: 1 }],
+      },
+    ],
+  },
+  {
+    id: "ORD-11B0",
+    kind: "solo",
+    title: "Weeknight gin",
+    statusLabel: "Delivered",
+    pending: false,
+    note: "Delivered",
+    active: false,
+    deliveryFeeZar: 25,
+    pastDateLabel: "12 Sep 2026",
+    hostParticipantId: "part-past-sam",
+    participants: [
+      {
+        id: "part-past-sam",
+        personKey: "self",
+        membershipId: DEMO_USER.membershipId,
+        locked: true,
+        paymentState: "delivered",
+        lines: [{ bottleId: "bottle-tanqueray", qty: 1 }],
+      },
+    ],
+  },
+];
+
+export function getOrder(id: string): OrderSeed | undefined {
+  return ORDERS.find((o) => o.id === id);
+}
+
+export function activeOrders(): OrderSeed[] {
+  return ORDERS.filter((o) => o.active);
+}
+
+export function pastOrders(): OrderSeed[] {
+  return ORDERS.filter((o) => !o.active);
+}
+
+export function sharedActiveOrders(): OrderSeed[] {
+  return ORDERS.filter((o) => o.active && o.kind === "shared");
+}
+
+export function getBottle(id: string): Bottle | undefined {
+  return BOTTLE_SEED.find((b) => b.id === id);
+}
+
+export type ResolvedParticipant = {
+  id: string;
+  displayName: string;
+  initials: string;
+  membershipId: string;
+  membershipName: string;
+  productDiscountPct: number;
+  deliveryDiscountPct: number;
+  locked: boolean;
+  paymentState: PaymentState;
+  lines: { bottle: Bottle; qty: number; lineListZar: number }[];
+  /** Sum of list prices before product discount */
+  listSubtotalZar: number;
+  /** After membership product % (own purchases only) */
+  productSubtotalZar: number;
+  bottleCount: number;
+};
+
+export type ResolvedOrder = {
+  order: OrderSeed;
+  participants: ResolvedParticipant[];
+  delivery: DeliveryAbsorptionResult;
+  /** Viewer (demo self) participant, if present */
+  self: ResolvedParticipant | undefined;
+  selfDeliveryPaysZar: number;
+  /** Self product + delivery share they pay */
+  selfPayableZar: number;
+  totalBottles: number;
+};
+
+function membershipById(id: string) {
+  return MEMBERSHIP_TIERS.find((t) => t.id === id)!;
+}
+
+function resolvePerson(
+  personKey: "self" | string,
+): { displayName: string; initials: string } {
+  if (personKey === "self") {
+    return {
+      displayName: `${DEMO_USER.firstName} ${DEMO_USER.lastName}`,
+      initials: DEMO_USER.initials,
+    };
+  }
+  const person = FRIEND_PEOPLE.find((p) => p.id === personKey) as
+    | FriendPerson
+    | undefined;
+  if (!person) {
+    return { displayName: personKey, initials: "?" };
+  }
+  return {
+    displayName: displayName(person),
+    initials: person.initials,
+  };
+}
+
+function roundZar(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+export function resolveParticipant(p: ParticipantSeed): ResolvedParticipant {
+  const tier = membershipById(p.membershipId);
+  const person = resolvePerson(p.personKey);
+  const lines = p.lines.map((line) => {
+    const bottle = getBottle(line.bottleId);
+    if (!bottle) {
+      throw new Error(`Missing bottle seed: ${line.bottleId}`);
+    }
+    return {
+      bottle,
+      qty: line.qty,
+      lineListZar: roundZar(bottle.priceZar * line.qty),
+    };
+  });
+  const listSubtotalZar = roundZar(
+    lines.reduce((sum, l) => sum + l.lineListZar, 0),
+  );
+  const productSubtotalZar = roundZar(
+    listSubtotalZar * (1 - tier.productDiscountPct / 100),
+  );
+  const bottleCount = lines.reduce((sum, l) => sum + l.qty, 0);
+
+  return {
+    id: p.id,
+    displayName: person.displayName,
+    initials: person.initials,
+    membershipId: p.membershipId,
+    membershipName: tier.name,
+    productDiscountPct: tier.productDiscountPct,
+    deliveryDiscountPct: tier.deliveryDiscountPct,
+    locked: p.locked,
+    paymentState: p.paymentState,
+    lines,
+    listSubtotalZar,
+    productSubtotalZar,
+    bottleCount,
+  };
+}
+
+export function resolveOrder(order: OrderSeed): ResolvedOrder {
+  const participants = order.participants.map(resolveParticipant);
+  const delivery = computeDeliveryAbsorption(
+    order.deliveryFeeZar,
+    participants.map((p) => ({
+      id: p.id,
+      deliveryDiscountPct: p.deliveryDiscountPct,
+    })),
+  );
+  const self = participants.find((p) => {
+    const seed = order.participants.find((s) => s.id === p.id);
+    return seed?.personKey === "self";
+  });
+  const selfShare = self
+    ? delivery.participants.find((d) => d.id === self.id)
+    : undefined;
+  const selfDeliveryPaysZar = selfShare?.participantPaysZar ?? 0;
+  const selfPayableZar = self
+    ? roundZar(self.productSubtotalZar + selfDeliveryPaysZar)
+    : 0;
+  const totalBottles = participants.reduce((sum, p) => sum + p.bottleCount, 0);
+
+  return {
+    order,
+    participants,
+    delivery,
+    self,
+    selfDeliveryPaysZar,
+    selfPayableZar,
+    totalBottles,
+  };
+}
+
+/** List-row amount: self payable when present, else first participant. */
+export function orderListAmountZar(order: OrderSeed): number {
+  const resolved = resolveOrder(order);
+  if (resolved.self) return resolved.selfPayableZar;
+  return resolved.participants[0]
+    ? roundZar(
+        resolved.participants[0].productSubtotalZar +
+          (resolved.delivery.participants[0]?.participantPaysZar ?? 0),
+      )
+    : 0;
+}
+
+export function orderListDetail(order: OrderSeed): string {
+  if (!order.active && order.pastDateLabel) return order.pastDateLabel;
+  const resolved = resolveOrder(order);
+  const n = resolved.self?.bottleCount ?? resolved.totalBottles;
+  return n === 1 ? "1 bottle" : `${n} bottles`;
+}

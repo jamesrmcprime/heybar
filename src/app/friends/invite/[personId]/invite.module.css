@@ -42,6 +42,44 @@
   border: none;
   opacity: 0.55;
   cursor: not-allowed;
+  width: 100%;
+}
+
+.orderTarget {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hb-line);
+}
+
+.orderId {
+  font-family: var(--hb-font-mono);
+  font-size: 12px;
+  color: var(--hb-ash);
+}
+
+.orderLink {
+  color: var(--hb-amber);
+  font-size: 13px;
+  font-weight: 650;
+  margin-top: 4px;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--hb-radius-md);
+  background: rgba(201, 146, 58, 0.08);
+  border: 1px solid var(--hb-line);
+}
+
+.previewLine {
+  font-size: 13px;
+  color: var(--hb-mist);
+  line-height: 1.35;
 }
 
 .secondary {
