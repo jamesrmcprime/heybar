@@ -62,7 +62,6 @@
 .progress > i {
   display: block;
   height: 100%;
-  width: 42%;
   background: linear-gradient(90deg, var(--hb-amber-deep), var(--hb-amber));
 }
 
@@ -106,42 +105,7 @@
   flex-direction: column;
   align-items: center;
   width: 52px;
-}
-
-.badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--hb-line-strong);
-  background: var(--hb-surface-2);
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--hb-mist);
-  position: relative;
-}
-
-.earned {
-  border-color: rgba(224, 154, 62, 0.55);
-  box-shadow: 0 0 12px var(--hb-glow-amber);
-  color: var(--hb-amber);
-}
-
-.locked {
-  opacity: 0.45;
-}
-
-.lvl {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  font-size: 8px;
-  background: var(--hb-night);
-  border: 1px solid var(--hb-line);
-  border-radius: 4px;
-  padding: 1px 3px;
-  color: var(--hb-fog);
+  color: inherit;
 }
 
 .badgeCap {

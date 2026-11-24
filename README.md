@@ -57,17 +57,32 @@ Secondary flows (no tab bar):
 | `/onboarding/personal` → `address` → `membership` → `guild` → `terms` | Ordered onboarding |
 | `/profile/fields` | Profile fields collect shell |
 
+## Account / Guild / Rewards shells
+
+Nested under Profile tab (tab bar stays; Profile marked active):
+
+| Route | Purpose |
+|---|---|
+| `/account` | Contact / security / membership entry |
+| `/guild/[guildId]` | Guild detail — ranks ≤1000, Tops, rewards preview |
+| `/rewards?guild=` | Rewards list from seed config (5 levels × Guild) |
+| `/rewards/[rewardId]` | Reward detail — claim CTA disabled shell |
+
+Seed data: `src/data/ranks.ts`, `src/data/rewards.ts`, `src/data/demo-user.ts`.
+
 ## OPEN / stubs
 
 Do **not** invent:
 
-- Bottle Top earn / redeem / conversion rules
+- Bottle Top earn / redeem / conversion / debit rules
+- Reward claim eligibility (backend-only; UI claim button disabled)
 - Auth signup methods (see `src/lib/adapters/auth.ts`)
 - Age-verification provider (age gate is collect-only)
 - Final legal T&Cs copy (see `src/lib/adapters/legal.ts`)
 - Payment provider (see `src/lib/adapters/payment.ts`)
 - Delivery model / territory (see `src/lib/adapters/delivery.ts`)
 - XP &gt;1000 behaviour
+- Gin Level 5 official name (placeholder until Airtable)
 
 ## Visual QA
 
