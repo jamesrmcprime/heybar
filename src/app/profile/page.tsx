@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { TopBar } from "@/components/drinker/TopBar";
 import styles from "./profile.module.css";
 
@@ -102,6 +103,31 @@ export default function ProfilePage() {
           <p className="hb-caption" style={{ marginTop: 8 }}>
             Earn/redeem rules OPEN — balances are display stubs only.
           </p>
+        </section>
+
+        <section className={styles.panel}>
+          <div className="hb-section-label">
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Account shells</span>
+            <span className="hb-caption">Day 2</span>
+          </div>
+          <div className={styles.kv}>
+            <Link href="/profile/fields" className="hb-muted">
+              Profile fields
+            </Link>
+            <span className="hb-caption">Collect →</span>
+          </div>
+          <div className={styles.kv}>
+            <Link href="/auth/signup" className="hb-muted">
+              Sign up stub
+            </Link>
+            <span className="hb-caption">Methods OPEN →</span>
+          </div>
+          <div className={styles.kv}>
+            <Link href="/onboarding/personal" className="hb-muted">
+              Onboarding
+            </Link>
+            <span className="hb-caption">5 steps →</span>
+          </div>
         </section>
       </main>
     </>
