@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { InventoryStore } from "../src/lib/inventory";
 
 /**
  * Drinker shell smoke tests — structure only.
@@ -504,7 +505,8 @@ test.describe("inventory oversell skeleton (sealed bottles)", () => {
   });
 
   test("reserve / commit / release prevent naive oversell", async () => {
-    const { InventoryStore } = await import("../src/lib/inventory");
+    // Static import (top of file) — dynamic import of src/*.ts fails under
+    // CI Node with "Cannot use import statement outside a module".
     const store = new InventoryStore([
       { id: "bottle-absolut", stock: 2 },
       { id: "bottle-tanqueray", stock: 1 },
