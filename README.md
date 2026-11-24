@@ -12,6 +12,7 @@ Night Seal drinker shell: **Home · Bottles · Friends · Orders · Profile**. C
 - Playwright E2E (`e2e/`) — full journey + cancel/pay-fail matrix in CI
 - Payment & delivery adapters are **stubs** — provider / model / territory still OPEN
 - Delivery status machine: preparation → assigned → pickup → in_transit → delivered (exception / soft-cancel side paths; no hard-deletes)
+- Supabase schema/RLS prep under `supabase/migrations/` + thin client stub (`src/lib/supabase/`) — placeholders only until a live project exists
 
 ## Prerequisites
 
@@ -41,7 +42,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Production build + PWA assets |
 | `npm start` | Serve production build |
 | `npm run lint` | ESLint |
-| `npm run test:unit` | Node unit tests (inventory + payment + delivery + membership + bottle tops + order-status notifications stub) |
+| `npm run test:unit` | Node unit tests (inventory + payment + delivery + membership + bottle tops + notifications + supabase stub/migrations) |
 | `npm run test:e2e` | Playwright suite (shell smoke + full journey + matrix) |
 | `npm run test:e2e:journey` | Func QA journey + cancel/pay-fail matrix only |
 
@@ -56,6 +57,10 @@ Fifteen sealed bottles with **editable prototype prices** live in `src/data/bott
 ## Inventory skeleton
 
 `src/lib/inventory.ts` — in-memory reserve / release / commit for **sealed bottles only**. Prevents naive oversell; cocktail SKUs rejected. Reservation timing (cart vs pay vs fulfill) remains OPEN.
+
+## Supabase prep (stub)
+
+SQL migrations + RLS sketch live in `supabase/migrations/` (profiles, bottles, orders, delivery, Tops ledger, membership). Env placeholders: `.env.example` (`NEXT_PUBLIC_SUPABASE_URL`, anon key, service role — **never** invent real secrets; service role stays server-only). Thin client: `src/lib/supabase/` — Auth adapter (`src/lib/adapters/auth.ts`) documents the swap to real Supabase Auth when credentials exist.
 
 ## Auth & onboarding shells
 
