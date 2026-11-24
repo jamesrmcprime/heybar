@@ -2,6 +2,9 @@
  * Prototype bottle catalogue seed (15 sealed bottles).
  * Prices from heybar-master-brief §7.5 — editable seed data, NOT live retail.
  * Do not import cocktails / custom drinks.
+ *
+ * Bottles tab UI shows CATALOGUE_BOTTLE_IDS only (Wave 1 mockup curated 5).
+ * Full seed remains for shared-order cast, inventory, and discount tests.
  */
 
 export type BottleCategory =
@@ -211,22 +214,38 @@ export const BOTTLE_SEED: Bottle[] = [
   },
 ];
 
+/** Wave 1 Bottles mockup order — All · Gin · Whiskey · Vodka · Rum (no Tequila). */
 export const BOTTLE_FILTERS = [
   "All",
   "Gin",
   "Whiskey",
   "Vodka",
   "Rum",
-  "Tequila",
 ] as const;
 
 export type BottleFilter = (typeof BOTTLE_FILTERS)[number];
 
-export function listBottles(filter: BottleFilter = "All"): Bottle[] {
-  if (filter === "All") return BOTTLE_SEED;
-  return BOTTLE_SEED.filter((b) => b.category === filter);
-}
+/**
+ * Curated Bottles-tab rows (Bombay → Jameson) matching media/mockups/bottles.png.
+ * Not a delete of other sealed SKUs — getBottle still resolves the full seed.
+ */
+export const CATALOGUE_BOTTLE_IDS = [
+  "bottle-bombay-sapphire",
+  "bottle-jack-daniels",
+  "bottle-grey-goose",
+  "bottle-hendricks",
+  "bottle-jameson",
+] as const;
 
 export function getBottle(id: string): Bottle | undefined {
   return BOTTLE_SEED.find((b) => b.id === id);
+}
+
+/** Sealed bottles shown on the Bottles tab (curated mockup set). */
+export function listBottles(filter: BottleFilter = "All"): Bottle[] {
+  const catalogue = CATALOGUE_BOTTLE_IDS.map((id) => getBottle(id)).filter(
+    (b): b is Bottle => b != null,
+  );
+  if (filter === "All") return catalogue;
+  return catalogue.filter((b) => b.category === filter);
 }

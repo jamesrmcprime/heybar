@@ -63,14 +63,19 @@ test.describe("drinker 5-tab shell", () => {
     await expect(page.getByRole("link", { name: "Browse bottles" })).toBeVisible();
   });
 
-  test("Bottles lists all 15 seed bottles", async ({ page }) => {
+  test("Bottles lists curated Wave 1 catalogue (5)", async ({ page }) => {
     await page.goto("/bottles");
     await expect(page.getByText("Sealed bottles only")).toBeVisible();
-    await expect(page.getByText("Absolut")).toBeVisible();
-    await expect(page.getByText("Tanqueray")).toBeVisible();
     await expect(page.getByText("Bombay Sapphire")).toBeVisible();
+    await expect(page.getByText("Jack Daniel's")).toBeVisible();
+    await expect(page.getByText("Grey Goose")).toBeVisible();
+    await expect(page.getByText("Hendrick's")).toBeVisible();
+    await expect(page.getByText("Jameson")).toBeVisible();
+    await expect(page.getByText("Absolut")).toHaveCount(0);
+    await expect(page.getByRole("tab", { name: "Tequila" })).toHaveCount(0);
     const rows = page.locator("main li");
-    await expect(rows).toHaveCount(15);
+    await expect(rows).toHaveCount(5);
+    await expect(page.getByText(/In stock/i)).toHaveCount(0);
   });
 
   test("no cocktails tab or custom-drink CTA", async ({ page }) => {
@@ -309,8 +314,13 @@ test.describe("friends graph shells", () => {
     await expect(page.getByRole("heading", { name: "Buddies" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Discover" })).toBeVisible();
     await expect(page.getByText("James McIntosh")).toBeVisible();
+    await expect(page.getByText("Sam Lady")).toBeVisible();
     await expect(page.getByText("Dave Person")).toBeVisible();
+    await expect(page.getByText("Jane Doe")).toBeVisible();
     await expect(page.getByText("Alice Card")).toBeVisible();
+    await expect(page.getByText("Straight Up", { exact: true })).toBeVisible();
+    await expect(page.getByText("Alex K")).toHaveCount(0);
+    await expect(page.getByText("Riley M")).toHaveCount(0);
     await expect(page.getByPlaceholder("Find drinking buddies")).toBeVisible();
   });
 
@@ -543,9 +553,14 @@ test.describe("shared orders + delivery absorption", () => {
 });
 
 test.describe("inventory oversell skeleton (sealed bottles)", () => {
-  test("catalogue shows in-stock from seed", async ({ page }) => {
+  test("catalogue add stays enabled for seeded stock (no stock append)", async ({
+    page,
+  }) => {
     await page.goto("/bottles");
-    await expect(page.getByText(/In stock/i).first()).toBeVisible();
+    await expect(page.getByText(/In stock/i)).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /Add Bombay Sapphire to cart/i }),
+    ).toBeEnabled();
   });
   // Reserve/oversell logic: src/lib/inventory.test.ts (npm run test:unit).
 });

@@ -7,7 +7,6 @@ import {
   type BottleFilter,
 } from "@/data/bottles";
 import { formatZar } from "@/lib/format";
-import { availabilityLabel } from "@/lib/inventory";
 import styles from "./BottleCatalogue.module.css";
 
 export function BottleCatalogue() {
@@ -35,8 +34,8 @@ export function BottleCatalogue() {
         {bottles.map((bottle) => {
           // Display seed stock only — reserve/commit path is server-side
           // (src/lib/inventory.ts). Client totals are never source of truth.
+          // Spec line matches Wave 1 mockup: size · ABV · category (no stock append).
           const available = bottle.available ? bottle.stock : 0;
-          const label = availabilityLabel(available);
           const canAdd = available > 0;
           return (
             <li key={bottle.id} className={styles.row}>
@@ -52,7 +51,6 @@ export function BottleCatalogue() {
                     ? ` · ${bottle.abvPercent}% ABV`
                     : ""}
                   {` · ${bottle.category}`}
-                  {` · ${label === "in_stock" ? "In stock" : "Out of stock"}`}
                 </div>
                 <div className={styles.foot}>
                   <span className="hb-price">{formatZar(bottle.priceZar)}</span>

@@ -47,13 +47,13 @@ test.describe("Func QA full journey", () => {
     await expect(page).toHaveURL("/");
     await expect(page.getByRole("heading", { name: /HeyBar/i })).toBeVisible();
 
-    // --- Bottles (sealed catalogue) ---
+    // --- Bottles (sealed catalogue — Wave 1 curated 5) ---
     await page.getByRole("link", { name: "Browse bottles" }).click();
     await expect(page).toHaveURL(/\/bottles/);
     await expect(page.getByText("Sealed bottles only")).toBeVisible();
-    await expect(page.getByText("Tanqueray")).toBeVisible();
-    await expect(page.getByText("Absolut")).toBeVisible();
-    await expect(page.locator("main li")).toHaveCount(15);
+    await expect(page.getByText("Bombay Sapphire")).toBeVisible();
+    await expect(page.getByText("Jameson")).toBeVisible();
+    await expect(page.locator("main li")).toHaveCount(5);
     await expect(page.getByText(/cocktail/i)).toHaveCount(0);
 
     // --- Shared order (brief absorption fixture) ---
