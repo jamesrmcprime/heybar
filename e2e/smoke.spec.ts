@@ -401,3 +401,52 @@ test.describe("shared orders + delivery absorption", () => {
     await expect(page.getByText(/XP > ?1,?000/i)).toHaveCount(0);
   });
 });
+
+test.describe("inventory oversell skeleton (sealed bottles)", () => {
+  test("catalogue shows in-stock from seed", async ({ page }) => {
+    await page.goto("/bottles");
+    await expect(page.getByText(/In stock/i).first()).toBeVisible();
+  });
+
+  test("reserve / commit / release prevent naive oversell", async () => {
+    const { InventoryStore } = await import("../src/lib/inventory");
+    const store = new InventoryStore([
+      { id: "bottle-absolut", stock: 2 },
+      { id: "bottle-tanqueray", stock: 1 },
+    ]);
+
+    const first = store.reserve([{ bottleId: "bottle-absolut", qty: 2 }]);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+
+    const oversell = store.reserve([{ bottleId: "bottle-absolut", qty: 1 }]);
+    expect(oversell.ok).toBe(false);
+    if (!oversell.ok) {
+      expect(oversell.reason).toBe("insufficient_stock");
+      expect(oversell.available).toBe(0);
+    }
+
+    const cocktail = store.reserve([
+      { bottleId: "cocktail-custom-negroni", qty: 1 },
+    ]);
+    expect(cocktail.ok).toBe(false);
+    if (!cocktail.ok) {
+      expect(cocktail.reason).toBe("not_sealed_catalogue");
+    }
+
+    store.release(first.reservationId);
+    expect(store.available("bottle-absolut")).toBe(2);
+
+    const again = store.reserve([{ bottleId: "bottle-absolut", qty: 2 }]);
+    expect(again.ok).toBe(true);
+    if (!again.ok) return;
+
+    const committed = store.commit(again.reservationId);
+    expect(committed.ok).toBe(true);
+    expect(store.available("bottle-absolut")).toBe(0);
+    expect(store.getSnapshot("bottle-absolut")?.onHand).toBe(0);
+
+    const afterCommit = store.reserve([{ bottleId: "bottle-absolut", qty: 1 }]);
+    expect(afterCommit.ok).toBe(false);
+  });
+});

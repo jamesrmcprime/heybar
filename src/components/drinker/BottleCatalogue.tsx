@@ -7,6 +7,7 @@ import {
   type BottleFilter,
 } from "@/data/bottles";
 import { formatZar } from "@/lib/format";
+import { availabilityLabel } from "@/lib/inventory";
 import styles from "./BottleCatalogue.module.css";
 
 export function BottleCatalogue() {
@@ -31,33 +32,43 @@ export function BottleCatalogue() {
         ))}
       </div>
       <ul className={styles.grid}>
-        {bottles.map((bottle) => (
-          <li key={bottle.id} className={styles.row}>
-            <div
-              className={`${styles.thumb} ${THUMB_TONES[toneIndex(bottle.id)]}`}
-              aria-hidden="true"
-            />
-            <div className={styles.meta}>
-              <div className={styles.name}>{bottle.name}</div>
-              <div className={styles.spec}>
-                {bottle.sizeMl} ml
-                {bottle.abvPercent != null ? ` · ${bottle.abvPercent}% ABV` : ""}
-                {` · ${bottle.category}`}
+        {bottles.map((bottle) => {
+          // Display seed stock only — reserve/commit path is server-side
+          // (src/lib/inventory.ts). Client totals are never source of truth.
+          const available = bottle.available ? bottle.stock : 0;
+          const label = availabilityLabel(available);
+          const canAdd = available > 0;
+          return (
+            <li key={bottle.id} className={styles.row}>
+              <div
+                className={`${styles.thumb} ${THUMB_TONES[toneIndex(bottle.id)]}`}
+                aria-hidden="true"
+              />
+              <div className={styles.meta}>
+                <div className={styles.name}>{bottle.name}</div>
+                <div className={styles.spec}>
+                  {bottle.sizeMl} ml
+                  {bottle.abvPercent != null
+                    ? ` · ${bottle.abvPercent}% ABV`
+                    : ""}
+                  {` · ${bottle.category}`}
+                  {` · ${label === "in_stock" ? "In stock" : "Out of stock"}`}
+                </div>
+                <div className={styles.foot}>
+                  <span className="hb-price">{formatZar(bottle.priceZar)}</span>
+                  <button
+                    type="button"
+                    className={styles.add}
+                    aria-label={`Add ${bottle.name} to cart (stub)`}
+                    disabled={!canAdd}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-              <div className={styles.foot}>
-                <span className="hb-price">{formatZar(bottle.priceZar)}</span>
-                <button
-                  type="button"
-                  className={styles.add}
-                  aria-label={`Add ${bottle.name} to cart (stub)`}
-                  disabled={!bottle.available}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
     </>
   );
