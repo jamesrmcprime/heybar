@@ -8,7 +8,12 @@
  *
  * Stub fee constants are demo seeds only. Territory remains flagged OPEN.
  * Do not invent a live geo schedule or dispatch provider here.
+ *
+ * Successful status transitions emit order-status notification stubs
+ * (in-memory log only — channels OPEN; see @/lib/notifications).
  */
+
+import { notifyOrderStatusChange } from "@/lib/notifications";
 
 export type DeliveryStatus =
   | "preparation"
@@ -225,6 +230,13 @@ export class DeliveryStore implements DeliveryAdapter {
       toStatus: "preparation",
       note: req.addressSummary || null,
     });
+    this.emitStatusNotification({
+      orderId: req.orderId,
+      fromStatus: null,
+      toStatus: "preparation",
+      deliveryEventKind: "dispatch",
+      note: req.addressSummary || null,
+    });
 
     return {
       status: "stub",
@@ -324,6 +336,13 @@ export class DeliveryStore implements DeliveryAdapter {
       toStatus: next,
       note: null,
     });
+    this.emitStatusNotification({
+      orderId,
+      fromStatus: from,
+      toStatus: next,
+      deliveryEventKind: "advance",
+      note: null,
+    });
 
     return { ok: true, shipment: { ...shipment }, event };
   }
@@ -360,6 +379,13 @@ export class DeliveryStore implements DeliveryAdapter {
       kind: "exception",
       fromStatus: from,
       toStatus: "exception",
+      note: trimmed,
+    });
+    this.emitStatusNotification({
+      orderId,
+      fromStatus: from,
+      toStatus: "exception",
+      deliveryEventKind: "exception",
       note: trimmed,
     });
 
@@ -402,12 +428,20 @@ export class DeliveryStore implements DeliveryAdapter {
     shipment.status = "cancelled";
     shipment.softCancelled = true;
     shipment.updatedAt = isoNow();
+    const cancelNote = note?.trim() || "soft cancel";
     const event = this.appendEvent({
       orderId,
       kind: "soft_cancel",
       fromStatus: from,
       toStatus: "cancelled",
-      note: note?.trim() || "soft cancel",
+      note: cancelNote,
+    });
+    this.emitStatusNotification({
+      orderId,
+      fromStatus: from,
+      toStatus: "cancelled",
+      deliveryEventKind: "soft_cancel",
+      note: cancelNote,
     });
 
     return { ok: true, shipment: { ...shipment }, event };
@@ -431,6 +465,20 @@ export class DeliveryStore implements DeliveryAdapter {
     };
     this.events.push(event);
     return event;
+  }
+
+  /**
+   * Hook into the notifications stub on every real status change.
+   * No-op send — records only. Channels remain OPEN.
+   */
+  private emitStatusNotification(input: {
+    orderId: string;
+    fromStatus: DeliveryStatus | null;
+    toStatus: DeliveryStatus;
+    deliveryEventKind: DeliveryEventKind;
+    note: string | null;
+  }): void {
+    notifyOrderStatusChange(input);
   }
 }
 
