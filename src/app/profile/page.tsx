@@ -1,89 +1,117 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { TopBar } from "@/components/drinker/TopBar";
+import { RewardBadge } from "@/components/rewards/RewardBadge";
+import {
+  DEMO_USER,
+  demoGuild,
+  demoMembership,
+  demoRank,
+} from "@/data/demo-user";
+import { demoRewardState, rewardsForGuild } from "@/data/rewards";
+import { formatZar } from "@/lib/format";
 import styles from "./profile.module.css";
 
 export const metadata: Metadata = {
   title: "Profile",
 };
 
-const GIN_BADGES = [
-  { code: "BB", level: "L1", name: "Botanical Beginner", state: "earned" },
-  { code: "CC", level: "L2", name: "Citrus Crafter", state: "earned" },
-  { code: "HH", level: "L3", name: "Herb Hero", state: "active" },
-  { code: "JG", level: "L4", name: "Juniper Genius", state: "locked" },
-  { code: "G5", level: "L5", name: "Gin Level 5", state: "locked" },
-] as const;
-
 export default function ProfilePage() {
+  const membership = demoMembership();
+  const guild = demoGuild();
+  const rank = demoRank();
+  const ginRewards = rewardsForGuild(guild.id);
+  const progressPct = Math.min(
+    100,
+    Math.round((DEMO_USER.xp / rank.maxPoints) * 100),
+  );
+
   return (
     <>
       <TopBar title="Profile" />
       <main className={`hb-main ${styles.main}`}>
         <div className={styles.hero}>
-          <div className={styles.avatar}>SL</div>
+          <div className={styles.avatar}>{DEMO_USER.initials}</div>
           <div>
             <h2 className="hb-h3" style={{ fontSize: 16 }}>
-              Sam Lady
+              {DEMO_USER.firstName} {DEMO_USER.lastName}
             </h2>
-            <div className="hb-caption">Verified 18+ · Johannesburg</div>
+            <div className="hb-caption">
+              Verified 18+ · {DEMO_USER.city}
+            </div>
             <div className={styles.chips}>
-              <span className="hb-chip hb-chip--gold">Top Shelf</span>
-              <span className="hb-chip hb-chip--amber">Gin</span>
+              <span className="hb-chip hb-chip--gold">{membership.name}</span>
+              <span className="hb-chip hb-chip--amber">{guild.focus}</span>
             </div>
           </div>
         </div>
 
         <section className={styles.panel}>
           <div className="hb-section-label">
-            <span style={{ fontWeight: 700, fontSize: 13 }}>Gin reward badges</span>
-            <span className="hb-caption">Guild path</span>
+            <span style={{ fontWeight: 700, fontSize: 13 }}>
+              {guild.focus} reward badges
+            </span>
+            <Link href={`/rewards?guild=${guild.id}`} className="hb-caption">
+              See all →
+            </Link>
           </div>
           <div className={styles.badgeRow}>
-            {GIN_BADGES.map((badge) => (
-              <div key={badge.code} className={styles.badgeCol}>
-                <div
-                  className={`${styles.badge} ${
-                    badge.state === "earned"
-                      ? styles.earned
-                      : badge.state === "locked"
-                        ? styles.locked
-                        : ""
-                  }`}
+            {ginRewards.map((reward) => {
+              const state = demoRewardState(reward);
+              return (
+                <Link
+                  key={reward.id}
+                  href={`/rewards/${reward.id}`}
+                  className={styles.badgeCol}
                 >
-                  {badge.code}
-                  <span className={styles.lvl}>{badge.level}</span>
-                </div>
-                <div className={styles.badgeCap}>{badge.name}</div>
-              </div>
-            ))}
+                  <RewardBadge
+                    code={reward.code}
+                    level={reward.level}
+                    state={state}
+                  />
+                  <div className={styles.badgeCap}>{reward.name}</div>
+                </Link>
+              );
+            })}
           </div>
         </section>
 
         <section className={styles.panel}>
           <div className="hb-section-label">
             <span style={{ fontWeight: 700, fontSize: 13 }}>Membership</span>
-            <span className="hb-caption">R300 / mo</span>
+            <span className="hb-caption">
+              {formatZar(membership.feeZarPerMonth)} / mo
+            </span>
           </div>
-          <div className="hb-caption">25% product · 100% delivery</div>
+          <div className="hb-caption">
+            {membership.productDiscountPct}% product ·{" "}
+            {membership.deliveryDiscountPct}% delivery
+          </div>
         </section>
 
         <section className={styles.panel}>
           <div className="hb-section-label">
             <span style={{ fontWeight: 700, fontSize: 13 }}>Guild</span>
-            <span className="hb-chip hb-chip--amber">Gin Connoisseurs</span>
+            <Link href={`/guild/${guild.id}`} className="hb-chip hb-chip--amber">
+              {guild.name}
+            </Link>
           </div>
           <div className={styles.kv}>
             <span className="hb-muted">Rank</span>
-            <span className="hb-price">Sipper</span>
+            <span className="hb-price">{rank.name}</span>
           </div>
           <div className={styles.kv}>
             <span className="hb-muted">XP</span>
-            <span className="hb-price">186 / 299</span>
+            <span className="hb-price">
+              {DEMO_USER.xp} / {rank.maxPoints}
+            </span>
           </div>
           <div className={styles.progress} aria-hidden="true">
-            <i />
+            <i style={{ width: `${progressPct}%` }} />
           </div>
+          <p className="hb-caption" style={{ marginTop: 6 }}>
+            XP &gt; 1,000 · OPEN
+          </p>
         </section>
 
         <section className={styles.panel}>
@@ -93,11 +121,11 @@ export default function ProfilePage() {
           <div className={styles.tops}>
             <div className={`${styles.topBox} ${styles.blue}`}>
               <div className="hb-caption">Blue</div>
-              <div className={styles.n}>120</div>
+              <div className={styles.n}>{DEMO_USER.blueTops}</div>
             </div>
             <div className={`${styles.topBox} ${styles.gold}`}>
               <div className="hb-caption">Gold</div>
-              <div className={styles.n}>8</div>
+              <div className={styles.n}>{DEMO_USER.goldTops}</div>
             </div>
           </div>
           <p className="hb-caption" style={{ marginTop: 8 }}>
@@ -107,8 +135,26 @@ export default function ProfilePage() {
 
         <section className={styles.panel}>
           <div className="hb-section-label">
-            <span style={{ fontWeight: 700, fontSize: 13 }}>Account shells</span>
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Account &amp; shells</span>
             <span className="hb-caption">Day 2</span>
+          </div>
+          <div className={styles.kv}>
+            <Link href="/account" className="hb-muted">
+              Account
+            </Link>
+            <span className="hb-caption">Contact →</span>
+          </div>
+          <div className={styles.kv}>
+            <Link href={`/guild/${guild.id}`} className="hb-muted">
+              Guild detail
+            </Link>
+            <span className="hb-caption">Ranks · Tops →</span>
+          </div>
+          <div className={styles.kv}>
+            <Link href={`/rewards?guild=${guild.id}`} className="hb-muted">
+              Rewards
+            </Link>
+            <span className="hb-caption">List →</span>
           </div>
           <div className={styles.kv}>
             <Link href="/profile/fields" className="hb-muted">

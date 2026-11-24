@@ -142,3 +142,78 @@ test.describe("auth + onboarding flow shells", () => {
     await expect(page.getByText(/verification method is OPEN/i)).toBeVisible();
   });
 });
+
+const ACCOUNT_GUILD_REWARD_ROUTES = [
+  { name: "Account", path: "/account", heading: /^Account$/ },
+  { name: "Guild detail", path: "/guild/gin", heading: /^Guild$/ },
+  { name: "Rewards list", path: "/rewards?guild=gin", heading: /^Rewards$/ },
+  {
+    name: "Reward detail",
+    path: "/rewards/gin-l3",
+    heading: /^Reward$/,
+  },
+] as const;
+
+test.describe("account + guild + rewards shells", () => {
+  for (const route of ACCOUNT_GUILD_REWARD_ROUTES) {
+    test(`${route.name} renders with Profile tab active`, async ({ page }) => {
+      await page.goto(route.path);
+      await expect(
+        page.getByRole("heading", { name: route.heading }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Drinker" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "Profile", exact: true }),
+      ).toHaveAttribute("aria-current", "page");
+    });
+  }
+
+  test("account shows contact fields without inventing auth methods", async ({
+    page,
+  }) => {
+    await page.goto("/account");
+    await expect(page.getByText("Sam Lady")).toBeVisible();
+    await expect(page.getByText(/Auth methods OPEN/i)).toBeVisible();
+  });
+
+  test("guild detail shows ranks ≤1000 and OPEN flags", async ({ page }) => {
+    await page.goto("/guild/gin");
+    await expect(page.getByText("Gin Connoisseurs", { exact: true })).toBeVisible();
+    await expect(page.getByText("Grand Reserve")).toBeVisible();
+    await expect(page.getByText(/700–1[\s,]?000/)).toBeVisible();
+    await expect(page.getByText(/XP > 1,000 · OPEN/i)).toBeVisible();
+    await expect(page.getByText(/Earn \/ debit rules · OPEN/i)).toBeVisible();
+    await expect(page.getByText("Botanical Beginner")).toBeVisible();
+  });
+
+  test("rewards list shows Gin L1–L5 seed table", async ({ page }) => {
+    await page.goto("/rewards?guild=gin");
+    await expect(page.getByText("Botanical Beginner")).toBeVisible();
+    await expect(page.getByText("Herb Hero")).toBeVisible();
+    await expect(page.getByText("Gin Level 5")).toBeVisible();
+    await expect(page.getByText(/Bottle Top debit rules · OPEN/i)).toBeVisible();
+  });
+
+  test("reward detail is claim-shell only (no debit logic)", async ({
+    page,
+  }) => {
+    await page.goto("/rewards/gin-l3");
+    await expect(
+      page.getByRole("heading", { name: "Herb Hero" }),
+    ).toBeVisible();
+    await expect(page.getByText("XP required")).toBeVisible();
+    await expect(page.getByText("300").first()).toBeVisible();
+    await expect(page.getByText(/Bottle Top debit/i)).toBeVisible();
+    const claim = page.getByRole("button", { name: /Claim reward/i });
+    await expect(claim).toBeDisabled();
+  });
+
+  test("no cocktails surface on guild/rewards routes", async ({ page }) => {
+    await page.goto("/guild/gin");
+    await expect(page.getByText(/cocktail/i)).toHaveCount(0);
+    await page.goto("/rewards?guild=gin");
+    await expect(page.getByText(/cocktail/i)).toHaveCount(0);
+  });
+});

@@ -51,7 +51,11 @@ const TABS = [
   {
     href: "/profile",
     label: "Profile",
-    match: (path: string) => path.startsWith("/profile"),
+    match: (path: string) =>
+      path.startsWith("/profile") ||
+      path.startsWith("/account") ||
+      path.startsWith("/guild") ||
+      path.startsWith("/rewards"),
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="8" r="4" />

@@ -59,11 +59,16 @@ const ICONS: Record<Guild["accent"], ReactNode> = {
 
 type GuildBadgeProps = {
   accent: Guild["accent"];
+  size?: "md" | "lg";
 };
 
-export function GuildBadge({ accent }: GuildBadgeProps) {
+export function GuildBadge({ accent, size = "md" }: GuildBadgeProps) {
+  const sizeClass = size === "lg" ? " hb-gbadge--lg" : "";
   return (
-    <div className={`hb-gbadge hb-gbadge--${accent}`} aria-hidden="true">
+    <div
+      className={`hb-gbadge hb-gbadge--${accent}${sizeClass}`}
+      aria-hidden="true"
+    >
       {ICONS[accent]}
     </div>
   );
