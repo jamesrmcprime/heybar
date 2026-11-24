@@ -3,6 +3,9 @@
  * Sealed bottles only. Delivery fee is a demo seed — territory/pricing OPEN.
  * Totals are server-stubbed via computeDeliveryAbsorption +
  * applyMembershipProductDiscount — do not trust client-entered money.
+ *
+ * Fulfillment status is separate from per-participant paymentState.
+ * Soft cancel / exception are status transitions — no hard-deletes.
  */
 
 import { BOTTLE_SEED, type Bottle } from "./bottles";
@@ -17,6 +20,10 @@ import {
   applyMembershipProductDiscount,
   roundZar,
 } from "@/lib/membership-discount";
+import {
+  deliveryStatusLabel,
+  type DeliveryStatus,
+} from "@/lib/adapters/delivery";
 
 export type OrderKind = "shared" | "solo";
 
@@ -24,7 +31,6 @@ export type PaymentState =
   | "awaiting_pay"
   | "failed"
   | "paid"
-  | "failed"
   | "out_for_delivery"
   | "delivered"
   | "cancelled";
@@ -61,6 +67,10 @@ export type OrderSeed = {
   active: boolean;
   /** Seed delivery fee ZAR — schedule OPEN */
   deliveryFeeZar: number;
+  /** Fulfillment / delivery adapter status (architecture §7.1) */
+  fulfillmentStatus: DeliveryStatus;
+  /** Ops exception note when fulfillmentStatus === exception */
+  exceptionNote?: string;
   hostParticipantId: string;
   participants: ParticipantSeed[];
   /** Past solo orders may only need a display date */
@@ -78,6 +88,7 @@ export const ORDERS: OrderSeed[] = [
     note: "Your share locked · delivery split applied",
     active: true,
     deliveryFeeZar: 100,
+    fulfillmentStatus: "preparation",
     hostParticipantId: "part-sam",
     participants: [
       {
@@ -121,11 +132,12 @@ export const ORDERS: OrderSeed[] = [
     id: "ORD-3C91",
     kind: "solo",
     title: "Quick top-up",
-    statusLabel: "Out for delivery",
+    statusLabel: "In transit",
     pending: false,
     note: "Driver assigned · ETA tonight",
     active: true,
     deliveryFeeZar: 30,
+    fulfillmentStatus: "in_transit",
     hostParticipantId: "part-solo-sam",
     participants: [
       {
@@ -147,6 +159,7 @@ export const ORDERS: OrderSeed[] = [
     note: "Delivered",
     active: false,
     deliveryFeeZar: 25,
+    fulfillmentStatus: "delivered",
     pastDateLabel: "12 Sep 2026",
     hostParticipantId: "part-past-sam",
     participants: [
@@ -376,6 +389,72 @@ export function setParticipantPaymentState(
       p.id === participantId ? { ...p, paymentState } : p,
     ),
   };
+}
+
+/**
+ * Apply fulfillment status from the delivery adapter.
+ * Does not mutate participant carts or payment states (peer-safe).
+ */
+export function setOrderFulfillmentStatus(
+  order: OrderSeed,
+  fulfillmentStatus: DeliveryStatus,
+  opts?: { exceptionNote?: string | null; note?: string },
+): OrderSeed {
+  const label = deliveryStatusLabel(fulfillmentStatus);
+  const softCancelled = fulfillmentStatus === "cancelled";
+  const isException = fulfillmentStatus === "exception";
+  const delivered = fulfillmentStatus === "delivered";
+
+  return {
+    ...order,
+    fulfillmentStatus,
+    exceptionNote: isException
+      ? (opts?.exceptionNote ?? order.exceptionNote)
+      : undefined,
+    statusLabel: label,
+    pending:
+      softCancelled || delivered || isException
+        ? false
+        : fulfillmentStatus === "preparation"
+          ? order.pending
+          : false,
+    note:
+      opts?.note ??
+      (softCancelled
+        ? "Soft-cancelled · records retained"
+        : isException
+          ? (opts?.exceptionNote ?? order.exceptionNote ?? "Exception · ops")
+          : delivered
+            ? "Delivered"
+            : order.note),
+    active: softCancelled || delivered ? false : order.active,
+    // Participants intentionally unchanged — soft cancel is fulfillment-only.
+    participants: order.participants,
+  };
+}
+
+/**
+ * Soft-cancel the order at fulfillment level.
+ * Keeps every participant row and their paymentState (no hard-delete).
+ */
+export function softCancelOrder(
+  order: OrderSeed,
+  note?: string,
+): OrderSeed {
+  return setOrderFulfillmentStatus(order, "cancelled", {
+    note: note ?? "Soft-cancelled · records retained",
+  });
+}
+
+/** Raise fulfillment exception — participants untouched. */
+export function raiseOrderException(
+  order: OrderSeed,
+  exceptionNote: string,
+): OrderSeed {
+  return setOrderFulfillmentStatus(order, "exception", {
+    exceptionNote,
+    note: exceptionNote,
+  });
 }
 
 /** List-row amount: self payable when present, else first participant. */
