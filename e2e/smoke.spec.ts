@@ -431,7 +431,7 @@ test.describe("shared orders + delivery absorption", () => {
       page.getByRole("button", { name: /Pay share \(stub\)/i }),
     ).toBeEnabled();
     await expect(
-      page.getByText(/Delivery territory \/ fee schedule · OPEN/i),
+      page.getByText(/Delivery territory \/ fee schedule · OPEN/i).first(),
     ).toBeVisible();
     await expect(
       page.getByText(/Pays R62\.50 \+ absorbs R37\.50 = R100 fee/i),
@@ -602,4 +602,122 @@ test.describe("payment adapter stub (API smoke)", () => {
     expect(failBody.webhook.participantId).toBe("part-alex");
   });
   // Idempotency / HMAC / peer ledger isolation: src/lib/adapters/payment.test.ts
+});
+
+test.describe("delivery status shell (ops stub)", () => {
+  test("order room shows fulfillment track and OPEN stub fees", async ({
+    page,
+  }) => {
+    await page.goto("/orders/ORD-8F2A");
+    await expect(
+      page.getByRole("heading", { name: "Delivery status" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: "Fulfillment track" }),
+    ).toBeVisible();
+    await expect(page.getByText("Preparation").first()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Advance status" }),
+    ).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Raise exception" }),
+    ).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Soft cancel" }),
+    ).toBeEnabled();
+    await expect(
+      page.getByText(/territory OPEN \(A8/i),
+    ).toBeVisible();
+  });
+
+  test("soft cancel retains peers — no hard-delete of carts/payments", async ({
+    page,
+  }) => {
+    await page.goto("/orders/ORD-8F2A");
+    const carts = page.getByLabel("Participant carts");
+    await expect(carts.getByText(/Locked in · Paid/i)).toBeVisible();
+    await expect(carts.getByText("Alex K")).toBeVisible();
+    await expect(carts.getByText("Dave Person")).toBeVisible();
+
+    await page.getByRole("button", { name: "Soft cancel" }).click();
+
+    await expect(
+      page.getByText(/Soft-cancelled · shipment retained/i),
+    ).toBeVisible();
+    // Participants still listed with prior payment states (peer-safe)
+    await expect(carts.getByText("Riley M")).toBeVisible();
+    await expect(carts.getByText(/Locked in · Paid/i)).toBeVisible();
+    await expect(carts.getByText("Alex K")).toBeVisible();
+    await expect(carts.getByText("Dave Person")).toBeVisible();
+    await expect(carts.getByText("Sam Lady")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Advance status" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /Pay share/i }),
+    ).toHaveCount(0);
+  });
+
+  test("advance API walks happy path; exception API is peer-safe", async ({
+    request,
+  }) => {
+    const statusRes = await request.get(
+      "/api/delivery/status?orderId=ORD-ADV-E2E",
+    );
+    expect(statusRes.ok()).toBeTruthy();
+    const statusBody = (await statusRes.json()) as {
+      territoryFlag: string;
+      stubFees: { territoryFlag: string; sharedBaseZar: number };
+      shipment: { status: string };
+    };
+    expect(statusBody.territoryFlag).toBe("OPEN");
+    expect(statusBody.stubFees.territoryFlag).toBe("OPEN");
+    expect(statusBody.stubFees.sharedBaseZar).toBe(100);
+    expect(statusBody.shipment.status).toBe("preparation");
+
+    for (const expected of ["assigned", "pickup", "in_transit"] as const) {
+      const adv = await request.post("/api/delivery/advance", {
+        data: { orderId: "ORD-ADV-E2E" },
+      });
+      expect(adv.ok()).toBeTruthy();
+      const body = (await adv.json()) as {
+        shipment: { status: string };
+        territoryFlag: string;
+      };
+      expect(body.shipment.status).toBe(expected);
+      expect(body.territoryFlag).toBe("OPEN");
+    }
+
+    const ex = await request.post("/api/delivery/exception", {
+      data: { orderId: "ORD-ADV-E2E", note: "e2e exception stub" },
+    });
+    expect(ex.ok()).toBeTruthy();
+    const exBody = (await ex.json()) as {
+      shipment: { status: string; exceptionNote: string | null };
+    };
+    expect(exBody.shipment.status).toBe("exception");
+    expect(exBody.shipment.exceptionNote).toBe("e2e exception stub");
+
+    const cancel = await request.post("/api/delivery/soft-cancel", {
+      data: { orderId: "ORD-ADV-E2E", note: "close" },
+    });
+    expect(cancel.ok()).toBeTruthy();
+    const cancelBody = (await cancel.json()) as {
+      shipment: { status: string; softCancelled: boolean };
+    };
+    expect(cancelBody.shipment.status).toBe("cancelled");
+    expect(cancelBody.shipment.softCancelled).toBe(true);
+
+    // Still readable — no hard-delete
+    const after = await request.get(
+      "/api/delivery/status?orderId=ORD-ADV-E2E",
+    );
+    expect(after.ok()).toBeTruthy();
+    const afterBody = (await after.json()) as {
+      shipment: { status: string };
+      events: { kind: string }[];
+    };
+    expect(afterBody.shipment.status).toBe("cancelled");
+    expect(afterBody.events.some((e) => e.kind === "soft_cancel")).toBe(true);
+  });
 });

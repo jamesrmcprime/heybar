@@ -10,7 +10,8 @@ Night Seal drinker shell: **Home · Bottles · Friends · Orders · Profile**. C
 - Night Seal design tokens (`src/styles/design-tokens.css`)
 - PWA via `@ducanh2912/next-pwa` (service worker in production builds)
 - Playwright smoke tests (`e2e/`)
-- Payment & delivery adapters are **stubs** — provider / model still OPEN
+- Payment & delivery adapters are **stubs** — provider / model / territory still OPEN
+- Delivery status machine: preparation → assigned → pickup → in_transit → delivered (exception / soft-cancel side paths; no hard-deletes)
 
 ## Prerequisites
 
@@ -40,7 +41,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Production build + PWA assets |
 | `npm start` | Serve production build |
 | `npm run lint` | ESLint |
-| `npm run test:unit` | Node unit tests (inventory + payment + membership + bottle tops) |
+| `npm run test:unit` | Node unit tests (inventory + payment + delivery + membership + bottle tops) |
 | `npm run test:e2e` | Playwright smoke suite |
 
 ## CI

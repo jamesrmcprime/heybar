@@ -231,3 +231,87 @@
   place-items: center;
   text-decoration: none;
 }
+
+.track {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+}
+
+.trackStep {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--hb-ash);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-sm);
+  padding: 6px 8px;
+  background: var(--hb-night);
+}
+
+.trackReached {
+  color: var(--hb-fog);
+  border-color: var(--hb-line-strong);
+}
+
+.trackCurrent {
+  color: var(--hb-mist);
+  border-color: var(--hb-amber);
+  background: rgba(224, 154, 62, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(224, 154, 62, 0.25);
+}
+
+.opsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.opsBtn,
+.opsBtnMuted {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--hb-radius-md);
+  font-weight: 700;
+  font-family: var(--hb-font-body);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.opsBtn {
+  background: var(--hb-cta);
+  color: var(--hb-mist);
+  border: none;
+}
+
+.opsBtnMuted {
+  background: transparent;
+  color: var(--hb-fog);
+  border: 1px solid var(--hb-line-strong);
+}
+
+.opsBtn:disabled,
+.opsBtnMuted:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.exceptionBanner,
+.cancelBanner {
+  font-size: 13px;
+  font-weight: 650;
+  padding: 10px 12px;
+  border-left: 3px solid var(--hb-amber);
+  background: rgba(201, 146, 58, 0.08);
+  color: var(--hb-amber);
+}
+
+.exceptionBanner {
+  border-left-color: var(--hb-danger);
+  color: var(--hb-mist);
+  background: rgba(214, 69, 69, 0.1);
+}

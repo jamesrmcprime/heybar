@@ -35,7 +35,7 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit (inventory + payment + membership + bottle tops)
+      - name: Unit (inventory + payment + delivery + membership + bottle tops)
         run: npm run test:unit
 
       - name: Build

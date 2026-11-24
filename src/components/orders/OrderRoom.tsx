@@ -4,13 +4,25 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   abandonParticipant,
+  raiseOrderException,
   removeParticipant,
   resolveOrder,
+  setOrderFulfillmentStatus,
   setParticipantPaymentState,
+  softCancelOrder,
   type OrderSeed,
   type PaymentState,
   type ResolvedParticipant,
 } from "@/data/orders";
+import {
+  DELIVERY_FORWARD,
+  DELIVERY_STUB_FEES,
+  canAdvance,
+  canRaiseException,
+  canSoftCancel,
+  deliveryStatusLabel,
+  type DeliveryStatus,
+} from "@/lib/adapters/delivery";
 import { formatZar } from "@/lib/format";
 import styles from "@/app/orders/[orderId]/order.module.css";
 
@@ -44,28 +56,38 @@ function seedFor(
 
 /**
  * Shared / solo order room with stub mutation surfaces:
- * leave/abandon, pay-fail via signed payment stub API, remove participant.
- * Does not invent a live gateway, XP, or Bottle Tops.
+ * leave/abandon, pay-fail via signed payment stub API, remove participant,
+ * delivery status machine (advance / exception / soft-cancel).
+ * Does not invent a live gateway, territory, XP, or Bottle Tops.
  */
 export function OrderRoom({ initialOrder }: OrderRoomProps) {
   const [order, setOrder] = useState(initialOrder);
   const [payNote, setPayNote] = useState<string | null>(null);
+  const [opsNote, setOpsNote] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
+  const [opsBusy, setOpsBusy] = useState(false);
 
   const resolved = useMemo(() => resolveOrder(order), [order]);
   const { delivery, participants, self, selfPayableZar } = resolved;
   const isShared = order.kind === "shared";
   const activeSplitCount = delivery.participantCount;
   const selfSeed = self ? seedFor(order, self) : undefined;
+  const fulfillment = order.fulfillmentStatus;
   const canLeave =
     isShared &&
     selfSeed &&
     selfSeed.paymentState !== "cancelled" &&
-    selfSeed.paymentState !== "paid";
+    selfSeed.paymentState !== "paid" &&
+    fulfillment !== "cancelled";
   const canPay =
     selfSeed &&
+    fulfillment !== "cancelled" &&
+    fulfillment !== "exception" &&
     (selfSeed.paymentState === "awaiting_pay" ||
       selfSeed.paymentState === "failed");
+  const showAdvance = canAdvance(fulfillment);
+  const showException = canRaiseException(fulfillment);
+  const showSoftCancel = canSoftCancel(fulfillment);
 
   async function handlePay() {
     if (!self || !canPay || paying) return;
@@ -122,6 +144,76 @@ export function OrderRoom({ initialOrder }: OrderRoomProps) {
     setOrder((prev) => removeParticipant(prev, participantId));
   }
 
+  async function postDelivery(
+    path: "/api/delivery/advance" | "/api/delivery/exception" | "/api/delivery/soft-cancel",
+    body: Record<string, string>,
+  ) {
+    setOpsBusy(true);
+    setOpsNote(null);
+    try {
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        shipment?: {
+          status: DeliveryStatus;
+          exceptionNote: string | null;
+        };
+      };
+      if (!res.ok || !data.shipment) {
+        setOpsNote(data.error ?? "Delivery stub rejected");
+        return;
+      }
+      const nextStatus = data.shipment.status;
+      if (nextStatus === "cancelled") {
+        setOrder((prev) => softCancelOrder(prev, data.message));
+      } else if (nextStatus === "exception") {
+        setOrder((prev) =>
+          raiseOrderException(
+            prev,
+            data.shipment?.exceptionNote ?? "Exception · ops stub",
+          ),
+        );
+      } else {
+        setOrder((prev) =>
+          setOrderFulfillmentStatus(prev, nextStatus, {
+            note: data.message,
+          }),
+        );
+      }
+      setOpsNote(data.message ?? `Fulfillment → ${nextStatus}`);
+    } catch {
+      setOpsNote("Network error calling delivery stub");
+    } finally {
+      setOpsBusy(false);
+    }
+  }
+
+  function handleAdvance() {
+    if (!showAdvance || opsBusy) return;
+    void postDelivery("/api/delivery/advance", { orderId: order.id });
+  }
+
+  function handleException() {
+    if (!showException || opsBusy) return;
+    void postDelivery("/api/delivery/exception", {
+      orderId: order.id,
+      note: "Ops exception stub · no live dispatch",
+    });
+  }
+
+  function handleSoftCancel() {
+    if (!showSoftCancel || opsBusy) return;
+    void postDelivery("/api/delivery/soft-cancel", {
+      orderId: order.id,
+      note: "Soft cancel · records retained",
+    });
+  }
+
   return (
     <main className={`hb-main ${styles.main}`}>
       <header className={styles.header}>
@@ -139,6 +231,93 @@ export function OrderRoom({ initialOrder }: OrderRoomProps) {
         </span>
         <p className="hb-caption">{order.note}</p>
       </header>
+
+      <section className={styles.panel} aria-labelledby="fulfillment-heading">
+        <div className="hb-section-label">
+          <h3 id="fulfillment-heading" className="hb-h3">
+            Delivery status
+          </h3>
+        </div>
+        <p className="hb-caption">
+          Prep → assigned → pickup → transit → delivered · exception / soft
+          cancel as side paths · no hard-deletes
+        </p>
+        <ol className={styles.track} aria-label="Fulfillment track">
+          {DELIVERY_FORWARD.map((step) => {
+            const forwardIdx =
+              fulfillment === "exception" || fulfillment === "cancelled"
+                ? -1
+                : DELIVERY_FORWARD.indexOf(fulfillment);
+            const stepIdx = DELIVERY_FORWARD.indexOf(step);
+            const reached = forwardIdx >= 0 && stepIdx <= forwardIdx;
+            const isCurrent = step === fulfillment;
+            return (
+              <li
+                key={step}
+                className={`${styles.trackStep}${reached ? ` ${styles.trackReached}` : ""}${isCurrent ? ` ${styles.trackCurrent}` : ""}`}
+                data-status={step}
+              >
+                {deliveryStatusLabel(step)}
+              </li>
+            );
+          })}
+        </ol>
+        {(fulfillment === "exception" || fulfillment === "cancelled") && (
+          <p
+            className={
+              fulfillment === "exception" ? styles.exceptionBanner : styles.cancelBanner
+            }
+            role="status"
+          >
+            {fulfillment === "exception"
+              ? `Exception · ${order.exceptionNote ?? "ops"} · peers unchanged`
+              : "Soft-cancelled · shipment retained · participant carts/payments not deleted"}
+          </p>
+        )}
+        <div className={styles.opsRow}>
+          {showAdvance && (
+            <button
+              type="button"
+              className={styles.opsBtn}
+              disabled={opsBusy}
+              onClick={handleAdvance}
+            >
+              Advance status
+            </button>
+          )}
+          {showException && (
+            <button
+              type="button"
+              className={styles.opsBtnMuted}
+              disabled={opsBusy}
+              onClick={handleException}
+            >
+              Raise exception
+            </button>
+          )}
+          {showSoftCancel && (
+            <button
+              type="button"
+              className={styles.opsBtnMuted}
+              disabled={opsBusy}
+              onClick={handleSoftCancel}
+            >
+              Soft cancel
+            </button>
+          )}
+        </div>
+        <p className={styles.openFlag}>
+          Stub fee {formatZar(order.deliveryFeeZar)} · shared base{" "}
+          {formatZar(DELIVERY_STUB_FEES.sharedBaseZar)} / solo{" "}
+          {formatZar(DELIVERY_STUB_FEES.soloBaseZar)} · territory{" "}
+          {DELIVERY_STUB_FEES.territoryFlag} (A8 — stub constants only)
+        </p>
+        {opsNote && (
+          <p className={styles.payFailNote} role="status">
+            {opsNote}
+          </p>
+        )}
+      </section>
 
       {isShared && activeSplitCount > 0 && (
         <section className={styles.panel} aria-labelledby="delivery-heading">
@@ -283,7 +462,10 @@ export function OrderRoom({ initialOrder }: OrderRoomProps) {
         </ul>
       </section>
 
-      {self && selfSeed?.paymentState !== "cancelled" && (
+      {self &&
+        selfSeed?.paymentState !== "cancelled" &&
+        fulfillment !== "cancelled" &&
+        fulfillment !== "exception" && (
         <section className={styles.youPay}>
           <div>
             <div className="hb-caption">Your payable (stub)</div>
@@ -343,7 +525,7 @@ export function OrderRoom({ initialOrder }: OrderRoomProps) {
 
       <p className="hb-caption">
         No XP earn rules · Tops not spent here · payment stub (intent + signed
-        webhook); live gateway OPEN
+        webhook); delivery status stub · live gateway / territory OPEN
       </p>
     </main>
   );
