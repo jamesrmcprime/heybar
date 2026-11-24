@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 /**
  * Shared / solo order room — sealed bottles only.
  * Delivery split + HeyBar absorption from computeDeliveryAbsorption.
- * Stub mutations: leave/abandon, pay-fail via adapter, remove participant.
- * Payment provider, XP / Bottle Tops: not invented.
+ * Stub mutations: leave/abandon, pay-fail via signed payment stub, remove participant.
+ * Live payment provider, XP / Bottle Tops: not invented.
  */
 export default async function OrderDetailPage({ params }: PageProps) {
   const { orderId } = await params;

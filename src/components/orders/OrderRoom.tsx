@@ -11,7 +11,6 @@ import {
   type PaymentState,
   type ResolvedParticipant,
 } from "@/data/orders";
-import { stubPaymentAdapter } from "@/lib/adapters/payment";
 import { formatZar } from "@/lib/format";
 import styles from "@/app/orders/[orderId]/order.module.css";
 
@@ -45,7 +44,7 @@ function seedFor(
 
 /**
  * Shared / solo order room with stub mutation surfaces:
- * leave/abandon, pay-fail via payment adapter stub, remove participant.
+ * leave/abandon, pay-fail via signed payment stub API, remove participant.
  * Does not invent a live gateway, XP, or Bottle Tops.
  */
 export function OrderRoom({ initialOrder }: OrderRoomProps) {
@@ -74,18 +73,39 @@ export function OrderRoom({ initialOrder }: OrderRoomProps) {
     setPayNote(null);
     try {
       const amountCents = Math.round(selfPayableZar * 100);
-      const result = await stubPaymentAdapter.createIntent({
-        participantId: self.id,
-        amountCents,
-        currency: "ZAR",
-        orderId: order.id,
+      // Server stub: intent + signed failed webhook (checkoutUrl stays null).
+      // Live gateway remains OPEN — no client import of node:crypto adapter.
+      const res = await fetch("/api/payments/simulate-fail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          participantId: self.id,
+          amountCents,
+          currency: "ZAR",
+          orderId: order.id,
+        }),
       });
-      // Stub refuses charge while provider OPEN → failed state for this
-      // participant only (DEF-SO-2). No live gateway.
+      const data = (await res.json()) as {
+        message?: string;
+        error?: string;
+        intent?: { message?: string; checkoutUrl?: null };
+        webhook?: { accepted?: boolean; outcome?: string };
+      };
+      if (!res.ok || !data.webhook?.accepted) {
+        setPayNote(data.error ?? "Payment stub simulate-fail rejected");
+        return;
+      }
+      // Failed state for this participant only (DEF-SO-2).
       setOrder((prev) =>
         setParticipantPaymentState(prev, self.id, "failed"),
       );
-      setPayNote(result.message);
+      setPayNote(
+        data.message ??
+          data.intent?.message ??
+          "Payment adapter stub — provider OPEN. Charge refused.",
+      );
+    } catch {
+      setPayNote("Network error calling payment stub");
     } finally {
       setPaying(false);
     }
@@ -322,7 +342,8 @@ export function OrderRoom({ initialOrder }: OrderRoomProps) {
       )}
 
       <p className="hb-caption">
-        No XP earn rules · Tops not spent here · payment adapter stub only
+        No XP earn rules · Tops not spent here · payment stub (intent + signed
+        webhook); live gateway OPEN
       </p>
     </main>
   );

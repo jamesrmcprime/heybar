@@ -18,6 +18,7 @@ export type OrderKind = "shared" | "solo";
 
 export type PaymentState =
   | "awaiting_pay"
+  | "failed"
   | "paid"
   | "failed"
   | "out_for_delivery"

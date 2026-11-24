@@ -129,9 +129,9 @@
 }
 
 .youPay {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding: 14px;
   border-radius: var(--hb-radius-md);
