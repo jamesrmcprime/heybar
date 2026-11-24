@@ -1,0 +1,65 @@
+.main {
+  gap: 12px;
+}
+
+.panel {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.buddy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.name {
+  font-weight: 700;
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.primary {
+  height: 48px;
+  border-radius: var(--hb-radius-md);
+  background: var(--hb-cta);
+  color: var(--hb-mist);
+  font-weight: 700;
+  font-family: var(--hb-font-body);
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  border: none;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.secondary {
+  height: 48px;
+  border-radius: var(--hb-radius-md);
+  background: transparent;
+  color: var(--hb-fog);
+  border: 1px solid var(--hb-line-strong);
+  font-weight: 700;
+  font-family: var(--hb-font-body);
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.openFlag {
+  color: var(--hb-amber);
+  font-size: 12px;
+  font-weight: 700;
+}

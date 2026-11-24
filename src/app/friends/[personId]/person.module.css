@@ -1,0 +1,87 @@
+.main {
+  gap: 12px;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 8px;
+  text-align: center;
+}
+
+.avatarLg {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-line);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--hb-amber);
+}
+
+.panel {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-md);
+  padding: 4px 14px;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hb-line);
+  gap: 12px;
+  font-size: 13px;
+}
+
+.kv:last-child {
+  border-bottom: none;
+}
+
+.v {
+  color: var(--hb-fog);
+  font-size: 13px;
+  text-align: right;
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.primary {
+  height: 48px;
+  border-radius: var(--hb-radius-md);
+  background: var(--hb-cta);
+  color: var(--hb-mist);
+  font-weight: 700;
+  font-family: var(--hb-font-body);
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  border: none;
+}
+
+.secondary {
+  height: 48px;
+  border-radius: var(--hb-radius-md);
+  background: transparent;
+  color: var(--hb-fog);
+  border: 1px solid var(--hb-line-strong);
+  font-weight: 700;
+  font-family: var(--hb-font-body);
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
