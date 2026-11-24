@@ -46,13 +46,28 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Fifteen sealed bottles with **editable prototype prices** live in `src/data/bottles.ts` (from the master brief). They are not confirmed retail prices.
 
+## Auth & onboarding shells
+
+Secondary flows (no tab bar):
+
+| Route | Purpose |
+|---|---|
+| `/auth/signup` | Signup stub — methods OPEN |
+| `/age-gate` | 18+ affirmation collect-only |
+| `/onboarding/personal` → `address` → `membership` → `guild` → `terms` | Ordered onboarding |
+| `/profile/fields` | Profile fields collect shell |
+
 ## OPEN / stubs
 
 Do **not** invent:
 
 - Bottle Top earn / redeem / conversion rules
+- Auth signup methods (see `src/lib/adapters/auth.ts`)
+- Age-verification provider (age gate is collect-only)
+- Final legal T&Cs copy (see `src/lib/adapters/legal.ts`)
 - Payment provider (see `src/lib/adapters/payment.ts`)
 - Delivery model / territory (see `src/lib/adapters/delivery.ts`)
+- XP &gt;1000 behaviour
 
 ## Visual QA
 

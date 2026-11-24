@@ -1,0 +1,363 @@
+/* Secondary-flow chrome — Night Seal wave-2; no token changes */
+
+.hb-app--flow {
+  padding-bottom: var(--hb-safe-bottom);
+}
+
+.hb-flow-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--hb-header-height);
+  padding: 0 8px 0 4px;
+  padding-top: var(--hb-safe-top);
+  flex-shrink: 0;
+}
+
+.hb-flow-header__back {
+  width: var(--hb-hit-min);
+  height: var(--hb-hit-min);
+  display: grid;
+  place-items: center;
+  color: var(--hb-mist);
+  border-radius: var(--hb-radius-md);
+}
+
+.hb-flow-header__back:focus-visible {
+  outline: 2px solid var(--hb-focus);
+  outline-offset: 2px;
+}
+
+.hb-flow-header__title {
+  font-family: var(--hb-font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hb-step-dots {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.hb-step-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hb-line-strong);
+}
+
+.hb-step-dots span[data-on="true"] {
+  background: var(--hb-amber);
+}
+
+.hb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.hb-field label {
+  font-size: 0.75rem;
+  color: var(--hb-fog);
+  font-weight: 600;
+}
+
+.hb-field input,
+.hb-field textarea {
+  height: 48px;
+  border-radius: var(--hb-radius-md);
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-line);
+  padding: 0 14px;
+  color: var(--hb-mist);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  width: 100%;
+}
+
+.hb-field textarea {
+  height: auto;
+  min-height: 48px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.hb-field input::placeholder,
+.hb-field textarea::placeholder {
+  color: var(--hb-ash);
+}
+
+.hb-field input:focus-visible,
+.hb-field textarea:focus-visible {
+  outline: 2px solid var(--hb-focus);
+  outline-offset: 2px;
+}
+
+.hb-sticky-cta {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hb-sticky-cta .hb-btn {
+  width: 100%;
+}
+
+.hb-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--hb-radius-md);
+  border: 1px solid var(--hb-line);
+  background: var(--hb-surface);
+  margin-bottom: 6px;
+  text-align: left;
+  color: inherit;
+  width: 100%;
+  cursor: pointer;
+}
+
+.hb-choice[aria-checked="true"] {
+  border-color: rgba(224, 154, 62, 0.55);
+  box-shadow: 0 0 0 1px rgba(224, 154, 62, 0.25);
+}
+
+.hb-choice__radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--hb-line-strong);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.hb-choice[aria-checked="true"] .hb-choice__radio {
+  border-color: var(--hb-amber);
+  box-shadow: inset 0 0 0 4px var(--hb-amber);
+}
+
+.hb-choice__name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.hb-choice__meta {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--hb-fog);
+}
+
+.hb-choice__fee {
+  font-family: var(--hb-font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--hb-amber);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.hb-notice {
+  padding: 12px 14px;
+  border-radius: var(--hb-radius-md);
+  background: rgba(212, 160, 23, 0.1);
+  border: 1px solid rgba(212, 160, 23, 0.35);
+  color: var(--hb-warning);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.hb-notice--danger {
+  background: rgba(214, 69, 69, 0.1);
+  border-color: rgba(214, 69, 69, 0.35);
+  color: var(--hb-danger);
+}
+
+.hb-legal-box {
+  flex: 1;
+  min-height: 160px;
+  max-height: 280px;
+  overflow: auto;
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-md);
+  padding: 14px;
+  font-size: 0.8125rem;
+  color: var(--hb-fog);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.hb-check-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.8125rem;
+  color: var(--hb-mist);
+  margin-top: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.hb-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--hb-line-strong);
+  background: var(--hb-surface-2);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: var(--hb-mist);
+  font-size: 0.75rem;
+}
+
+.hb-check[data-on="true"] {
+  background: var(--hb-cta);
+  border-color: var(--hb-cta);
+}
+
+.hb-gate-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding-bottom: 24px;
+}
+
+.hb-gate-brand {
+  font-family: var(--hb-font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hb-gate-brand em {
+  font-style: normal;
+  color: var(--hb-amber);
+}
+
+.hb-guild-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.hb-guild-tile {
+  padding: 10px;
+  border-radius: var(--hb-radius-md);
+  border: 1px solid var(--hb-line);
+  background: var(--hb-surface);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.hb-guild-tile[aria-checked="true"] {
+  border-color: rgba(224, 154, 62, 0.55);
+  box-shadow: 0 0 0 1px rgba(224, 154, 62, 0.2);
+}
+
+.hb-guild-tile__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hb-guild-tile__name {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.hb-guild-tile__hint {
+  display: block;
+  font-size: 0.625rem;
+  color: var(--hb-ash);
+}
+
+.hb-gbadge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--hb-line-strong);
+  background: var(--hb-surface-2);
+}
+
+.hb-gbadge svg {
+  width: 22px;
+  height: 22px;
+}
+
+.hb-gbadge--gin {
+  background: linear-gradient(145deg, #1a2e24, #0e1612);
+  border-color: #3f9a6b;
+}
+
+.hb-gbadge--rum {
+  background: linear-gradient(145deg, #3a2418, #1a100c);
+  border-color: #b86f22;
+}
+
+.hb-gbadge--wine {
+  background: linear-gradient(145deg, #2a1220, #140810);
+  border-color: #a84a6a;
+}
+
+.hb-gbadge--tequila {
+  background: linear-gradient(145deg, #2a2a14, #14140a);
+  border-color: #d4af37;
+}
+
+.hb-gbadge--beer {
+  background: linear-gradient(145deg, #2a220e, #141008);
+  border-color: #e09a3e;
+}
+
+.hb-gbadge--whiskey {
+  background: linear-gradient(145deg, #2a1c10, #140e08);
+  border-color: #9a5a32;
+}
+
+.hb-gbadge--brandy {
+  background: linear-gradient(145deg, #2a1810, #140c08);
+  border-color: #c4472a;
+}
+
+.hb-gbadge--vodka {
+  background: linear-gradient(145deg, #1a2430, #0c1218);
+  border-color: #3d8bb8;
+}
+
+.hb-map-stub {
+  height: 140px;
+  border-radius: var(--hb-radius-md);
+  border: 1px solid var(--hb-line);
+  background:
+    radial-gradient(circle at 55% 45%, rgba(224, 154, 62, 0.25), transparent 40%),
+    linear-gradient(135deg, var(--hb-surface-2), var(--hb-night));
+  margin-bottom: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--hb-fog);
+  font-size: 0.75rem;
+}

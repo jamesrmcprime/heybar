@@ -1,0 +1,26 @@
+.main {
+  min-height: 100%;
+}
+
+.methodList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.method {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: var(--hb-radius-md);
+  border: 1px dashed var(--hb-line-strong);
+  background: var(--hb-surface);
+}
+
+.methodLabel {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--hb-fog);
+}
