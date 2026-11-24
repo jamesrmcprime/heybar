@@ -42,9 +42,17 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run lint` | ESLint |
 | `npm run test:e2e` | Playwright smoke suite |
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs `lint` → `build` → `test:e2e` on pull requests and pushes to `main`.
+
 ## Catalogue seed
 
 Fifteen sealed bottles with **editable prototype prices** live in `src/data/bottles.ts` (from the master brief). They are not confirmed retail prices.
+
+## Inventory skeleton
+
+`src/lib/inventory.ts` — in-memory reserve / release / commit for **sealed bottles only**. Prevents naive oversell; cocktail SKUs rejected. Reservation timing (cart vs pay vs fulfill) remains OPEN.
 
 ## Auth & onboarding shells
 
