@@ -1,0 +1,181 @@
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+  min-height: min(58dvh, 420px);
+  position: relative;
+}
+
+.heroGlow {
+  position: absolute;
+  inset: 8% 8% 20%;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(224, 154, 62, 0.28), transparent 55%),
+    radial-gradient(ellipse at 50% 70%, rgba(154, 90, 50, 0.2), transparent 60%);
+  filter: blur(2px);
+  pointer-events: none;
+  animation: ambientPulse var(--hb-duration-ambient) ease-in-out infinite alternate;
+}
+
+.bottleSil {
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 210px;
+  border-radius: 8px 8px 14px 14px;
+  background:
+    linear-gradient(180deg, rgba(242, 235, 225, 0.12), transparent 30%),
+    linear-gradient(180deg, #2a221c 0%, #171310 40%, #0e0c0a 100%);
+  border: 1px solid var(--hb-line-strong);
+  box-shadow:
+    0 0 48px var(--hb-glow-amber),
+    inset 0 0 24px rgba(224, 154, 62, 0.12);
+  animation: bottleRise 700ms var(--hb-ease-out) both;
+}
+
+.bottleSil::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 30px;
+  border-radius: 4px 4px 2px 2px;
+  background: #1a1612;
+  border: 1px solid var(--hb-line);
+}
+
+.bottleSil::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  top: 18%;
+  width: 10%;
+  height: 55%;
+  background: linear-gradient(180deg, rgba(242, 235, 225, 0.35), transparent);
+  border-radius: 4px;
+}
+
+.brand {
+  font-family: var(--hb-font-display);
+  font-size: var(--hb-text-brand-size);
+  line-height: var(--hb-text-brand-line);
+  font-weight: var(--hb-text-brand-weight);
+  letter-spacing: -0.03em;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp 500ms var(--hb-ease-out) 80ms both;
+}
+
+.brand em {
+  font-style: normal;
+  color: var(--hb-amber);
+}
+
+.support {
+  position: relative;
+  z-index: 1;
+  margin-top: 10px;
+  max-width: 280px;
+  color: var(--hb-fog);
+  font-size: 0.9375rem;
+  animation: fadeUp 500ms var(--hb-ease-out) 140ms both;
+}
+
+.ctaRow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  animation: fadeUp 500ms var(--hb-ease-out) 200ms both;
+}
+
+.ctaRow :global(.hb-btn) {
+  flex: 1;
+}
+
+.below {
+  padding-top: 4px;
+  border-top: 1px solid var(--hb-line);
+}
+
+.statStrip {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.stat {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-md);
+  padding: 10px 10px 12px;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--hb-ash);
+  margin-bottom: 4px;
+}
+
+.statVal {
+  font-family: var(--hb-font-mono);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.blue {
+  color: var(--hb-blue-top);
+}
+
+.gold {
+  color: var(--hb-gold-top);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bottleRise {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes ambientPulse {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroGlow,
+  .bottleSil,
+  .brand,
+  .support,
+  .ctaRow {
+    animation: none;
+  }
+}

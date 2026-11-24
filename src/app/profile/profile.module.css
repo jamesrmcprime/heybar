@@ -1,0 +1,154 @@
+.main {
+  gap: 8px;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-line-strong);
+  display: grid;
+  place-items: center;
+  font-family: var(--hb-font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--hb-amber);
+  box-shadow: 0 0 28px var(--hb-glow-amber);
+}
+
+.chips {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.panel {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-md);
+  padding: 10px 12px;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--hb-line);
+  font-size: 13px;
+}
+
+.kv:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.progress {
+  height: 5px;
+  border-radius: 4px;
+  background: var(--hb-surface-2);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.progress > i {
+  display: block;
+  height: 100%;
+  width: 42%;
+  background: linear-gradient(90deg, var(--hb-amber-deep), var(--hb-amber));
+}
+
+.tops {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.topBox {
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius-sm);
+  padding: 8px 10px;
+}
+
+.n {
+  font-family: var(--hb-font-mono);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.blue .n {
+  color: var(--hb-blue-top);
+}
+
+.gold .n {
+  color: var(--hb-gold-top);
+}
+
+.badgeRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.badgeCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 52px;
+}
+
+.badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--hb-line-strong);
+  background: var(--hb-surface-2);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--hb-mist);
+  position: relative;
+}
+
+.earned {
+  border-color: rgba(224, 154, 62, 0.55);
+  box-shadow: 0 0 12px var(--hb-glow-amber);
+  color: var(--hb-amber);
+}
+
+.locked {
+  opacity: 0.45;
+}
+
+.lvl {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 8px;
+  background: var(--hb-night);
+  border: 1px solid var(--hb-line);
+  border-radius: 4px;
+  padding: 1px 3px;
+  color: var(--hb-fog);
+}
+
+.badgeCap {
+  font-size: 9px;
+  color: var(--hb-ash);
+  text-align: center;
+  margin-top: 3px;
+  max-width: 52px;
+  line-height: 1.15;
+}

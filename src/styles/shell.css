@@ -1,0 +1,317 @@
+/* HeyBar drinker shell — Night Seal chrome aligned to locked mockups */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--hb-ink);
+  color: var(--hb-color-text);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.hb-app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--hb-content-max);
+  margin: 0 auto;
+  position: relative;
+  padding-bottom: calc(var(--hb-nav-height) + var(--hb-safe-bottom));
+}
+
+.hb-topbar {
+  height: var(--hb-header-height);
+  padding: 0 var(--hb-space-4);
+  padding-top: var(--hb-safe-top);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: var(--hb-z-sticky);
+  background: linear-gradient(
+    180deg,
+    rgba(20, 17, 15, 0.96) 0%,
+    rgba(20, 17, 15, 0.85) 70%,
+    transparent 100%
+  );
+}
+
+.hb-topbar__mark {
+  font-family: var(--hb-font-display);
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+}
+
+.hb-topbar__mark em {
+  font-style: normal;
+  color: var(--hb-amber);
+}
+
+.hb-topbar__title {
+  font-family: var(--hb-font-display);
+  font-size: var(--hb-text-h2-size);
+  line-height: var(--hb-text-h2-line);
+  font-weight: var(--hb-text-h2-weight);
+}
+
+.hb-icon-btn {
+  width: var(--hb-hit-min);
+  height: var(--hb-hit-min);
+  min-width: var(--hb-hit-min);
+  border-radius: var(--hb-radius-md);
+  border: 1px solid var(--hb-line);
+  background: var(--hb-surface);
+  display: grid;
+  place-items: center;
+  color: var(--hb-mist);
+  position: relative;
+}
+
+.hb-icon-btn__badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hb-cta);
+}
+
+.hb-main {
+  flex: 1;
+  padding: 0 var(--hb-space-4) var(--hb-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--hb-space-4);
+  min-height: 0;
+}
+
+.hb-tabbar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: var(--hb-content-max);
+  height: calc(var(--hb-nav-height) + var(--hb-safe-bottom));
+  padding: 6px 8px calc(8px + var(--hb-safe-bottom));
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  background: rgba(20, 17, 15, 0.92);
+  border-top: 1px solid var(--hb-line);
+  backdrop-filter: blur(12px);
+  z-index: var(--hb-z-nav);
+}
+
+.hb-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--hb-ash);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  min-height: var(--hb-hit-min);
+  transition: color var(--hb-duration-fast) var(--hb-ease-out);
+}
+
+.hb-tab svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hb-tab[aria-current="page"] {
+  color: var(--hb-amber);
+}
+
+.hb-tab__dot {
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: transparent;
+  margin-top: -2px;
+}
+
+.hb-tab[aria-current="page"] .hb-tab__dot {
+  background: var(--hb-amber);
+}
+
+.hb-h1 {
+  font-family: var(--hb-font-display);
+  font-size: var(--hb-text-h1-size);
+  line-height: var(--hb-text-h1-line);
+  font-weight: var(--hb-text-h1-weight);
+  letter-spacing: -0.02em;
+}
+
+.hb-h2 {
+  font-family: var(--hb-font-display);
+  font-size: var(--hb-text-h2-size);
+  line-height: var(--hb-text-h2-line);
+  font-weight: var(--hb-text-h2-weight);
+}
+
+.hb-h3 {
+  font-size: var(--hb-text-h3-size);
+  line-height: var(--hb-text-h3-line);
+  font-weight: 650;
+}
+
+.hb-caption {
+  font-size: var(--hb-text-caption-size);
+  line-height: var(--hb-text-caption-line);
+  font-weight: var(--hb-text-caption-weight);
+  color: var(--hb-ash);
+}
+
+.hb-muted {
+  color: var(--hb-fog);
+}
+
+.hb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hb-hit-min);
+  padding: 0 var(--hb-space-4);
+  border-radius: var(--hb-radius-md);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  border: none;
+  transition:
+    background var(--hb-duration-fast) var(--hb-ease-out),
+    transform var(--hb-duration-fast) var(--hb-ease-out);
+}
+
+.hb-btn:active {
+  transform: scale(0.98);
+}
+
+.hb-btn--primary {
+  background: var(--hb-cta);
+  color: var(--hb-mist);
+}
+
+.hb-btn--primary:hover {
+  background: var(--hb-cta-pressed);
+}
+
+.hb-btn--secondary {
+  background: var(--hb-surface);
+  color: var(--hb-mist);
+  border: 1px solid var(--hb-line-strong);
+}
+
+.hb-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 1.75rem;
+  padding: 0 0.75rem;
+  border-radius: var(--hb-radius-sm);
+  border: 1px solid var(--hb-line);
+  background: var(--hb-surface);
+  color: var(--hb-fog);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hb-chip--on {
+  background: rgba(224, 154, 62, 0.14);
+  color: var(--hb-amber);
+  border-color: rgba(224, 154, 62, 0.4);
+}
+
+.hb-chip--amber {
+  color: var(--hb-amber);
+  border-color: rgba(224, 154, 62, 0.35);
+  background: rgba(224, 154, 62, 0.12);
+}
+
+.hb-chip--gold {
+  color: var(--hb-gold-top);
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.1);
+}
+
+.hb-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hb-space-2);
+}
+
+.hb-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--hb-space-3);
+  padding: var(--hb-space-3) 0;
+  border-bottom: 1px solid var(--hb-line);
+}
+
+.hb-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-line);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--hb-amber);
+  flex-shrink: 0;
+}
+
+.hb-status-pill {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--hb-radius-sm);
+  background: rgba(63, 154, 107, 0.16);
+  color: var(--hb-success);
+}
+
+.hb-status-pill--pending {
+  background: rgba(212, 160, 23, 0.16);
+  color: var(--hb-warning);
+}
+
+@media (min-width: 768px) {
+  body {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, var(--hb-glow-amber), transparent 55%),
+      var(--hb-ink);
+  }
+
+  .hb-app {
+    border-left: 1px solid var(--hb-line);
+    border-right: 1px solid var(--hb-line);
+    min-height: 100dvh;
+  }
+}
