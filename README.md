@@ -79,9 +79,20 @@ Friends tab stays active on nested `/friends/*` routes:
 | `/friends` | Requests + Buddies + Discover (People folded in) |
 | `/friends/requests/[requestId]` | Incoming request detail — Accept / Decline shell |
 | `/friends/[personId]` | Buddy / Discover person detail |
-| `/friends/invite/[personId]` | Invite-to-shared-order shell (confirm disabled) |
+| `/friends/invite/[personId]` | Invite into active shared order — absorption preview; confirm is local UI only |
 
-Seed: `src/data/friends.ts`. Graph mutations are local UI only — not persisted. Shared-order invite math is OPEN until the next slice.
+Seed: `src/data/friends.ts`. Graph mutations are local UI only — not persisted.
+
+## Shared orders + delivery absorption
+
+Orders tab stays active on `/orders/[orderId]`:
+
+| Route | Purpose |
+|---|---|
+| `/orders` | Active + past list (shared & solo) |
+| `/orders/[orderId]` | Order room — participant carts, delivery split, HeyBar absorption |
+
+Math: `src/lib/delivery-absorption.ts` (equal split first; membership delivery % on own share; HeyBar absorbs gap — not redistributed). Seed: `src/data/orders.ts` (Friday night run = brief §2.3 example: R100 ÷ 4, absorbs R37.50). Sealed bottles only. Pay CTA disabled (payment provider OPEN).
 
 ## OPEN / stubs
 
@@ -93,10 +104,10 @@ Do **not** invent:
 - Age-verification provider (age gate is collect-only)
 - Final legal T&Cs copy (see `src/lib/adapters/legal.ts`)
 - Payment provider (see `src/lib/adapters/payment.ts`)
-- Delivery model / territory (see `src/lib/adapters/delivery.ts`)
+- Delivery model / territory / fee schedule (seed fee only; see `src/lib/adapters/delivery.ts`)
 - XP &gt;1000 behaviour
 - Gin Level 5 official name (placeholder until Airtable)
-- Shared-order invite / delivery absorption math (Friends invite CTA is disabled shell)
+- Persisted invite / participant mutations (invite confirm is local shell)
 
 ## Visual QA
 

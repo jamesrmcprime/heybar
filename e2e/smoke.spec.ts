@@ -280,16 +280,31 @@ test.describe("friends graph shells", () => {
     await expect(page.getByText(/Accepted shell/i)).toBeVisible();
   });
 
-  test("invite confirm is disabled (no shared-order math)", async ({
+  test("invite for buddy already on order keeps confirm disabled", async ({
     page,
   }) => {
     await page.goto("/friends/invite/dave-person");
     await expect(page.getByText("Dave Person", { exact: true })).toBeVisible();
-    await expect(page.getByText(/Shared-order invite · OPEN/i)).toBeVisible();
+    await expect(page.getByText(/Already on this shared order/i)).toBeVisible();
     await expect(
       page.getByRole("button", { name: /Confirm invite/i }),
     ).toBeDisabled();
     await expect(page.getByText(/Sealed bottles only/i)).toBeVisible();
+  });
+
+  test("invite preview shows delivery absorption for new buddy", async ({
+    page,
+  }) => {
+    await page.goto("/friends/invite/jane-doe");
+    await expect(page.getByText("Jane Doe", { exact: true })).toBeVisible();
+    await expect(page.getByText("Friday night run")).toBeVisible();
+    await expect(page.getByText(/If Jane Doe joins/i)).toBeVisible();
+    await expect(page.getByText(/HeyBar absorbs/i).first()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Confirm invite/i }),
+    ).toBeEnabled();
+    await page.getByRole("button", { name: /Confirm invite/i }).click();
+    await expect(page.getByText(/Invite shell/i)).toBeVisible();
   });
 
   test("search filters the friends graph", async ({ page }) => {
@@ -305,5 +320,84 @@ test.describe("friends graph shells", () => {
     await expect(page.getByText(/cocktail/i)).toHaveCount(0);
     await page.goto("/friends/invite/dave-person");
     await expect(page.getByText(/cocktail/i)).toHaveCount(0);
+  });
+});
+
+const ORDER_ROUTES = [
+  { name: "Orders tab", path: "/orders", heading: /^Orders$/ },
+  {
+    name: "Shared order room",
+    path: "/orders/ORD-8F2A",
+    heading: /^Order$/,
+  },
+  {
+    name: "Solo order detail",
+    path: "/orders/ORD-3C91",
+    heading: /^Order$/,
+  },
+] as const;
+
+test.describe("shared orders + delivery absorption", () => {
+  for (const route of ORDER_ROUTES) {
+    test(`${route.name} renders with Orders tab active`, async ({ page }) => {
+      await page.goto(route.path);
+      await expect(
+        page.getByRole("heading", { name: route.heading }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Drinker" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "Orders", exact: true }),
+      ).toHaveAttribute("aria-current", "page");
+    });
+  }
+
+  test("Orders lists active shared and solo", async ({ page }) => {
+    await page.goto("/orders");
+    await expect(page.getByRole("heading", { name: "Active" })).toBeVisible();
+    await expect(page.getByText("Friday night run")).toBeVisible();
+    await expect(page.getByText("Quick top-up")).toBeVisible();
+    await expect(page.getByText(/Shared · 4 people/i)).toBeVisible();
+    await expect(page.getByText("ORD-8F2A")).toBeVisible();
+  });
+
+  test("shared order room shows brief absorption example", async ({
+    page,
+  }) => {
+    await page.goto("/orders/ORD-8F2A");
+    await expect(
+      page.getByRole("heading", { name: "Friday night run" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Delivery split" })).toBeVisible();
+    await expect(page.getByText(/Fee R100 ÷ 4 = R25 each/i)).toBeVisible();
+    await expect(page.getByText("Straight Up · 0% delivery")).toBeVisible();
+    await expect(page.getByText("Neat · 0% delivery")).toBeVisible();
+    await expect(page.getByText("The Reserve · 50% delivery")).toBeVisible();
+    await expect(page.getByText("Top Shelf · 100% delivery")).toBeVisible();
+    await expect(
+      page.getByText("HeyBar absorbs", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("R37.50").first()).toBeVisible();
+    await expect(page.getByText("R12.50").first()).toBeVisible();
+    await expect(page.getByText("Tanqueray")).toBeVisible();
+    await expect(page.getByText("Absolut")).toBeVisible();
+    await expect(page.getByText(/Sealed bottles only/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Pay share/i }),
+    ).toBeDisabled();
+    await expect(
+      page.getByText(/Delivery territory \/ fee schedule · OPEN/i),
+    ).toBeVisible();
+  });
+
+  test("no cocktails or invented XP/Tops debit on orders", async ({
+    page,
+  }) => {
+    await page.goto("/orders/ORD-8F2A");
+    await expect(page.getByText(/cocktail/i)).toHaveCount(0);
+    await expect(page.getByText(/Tops not spent here/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /redeem/i })).toHaveCount(0);
+    await expect(page.getByText(/XP > ?1,?000/i)).toHaveCount(0);
   });
 });

@@ -91,7 +91,7 @@ export default async function FriendPersonPage({ params }: PageProps) {
         </div>
 
         <p className="hb-caption">
-          No Bottle Top / XP rules here · invite shell does not run delivery
+          No Bottle Top / XP rules here · invite preview uses delivery
           absorption math
         </p>
       </main>

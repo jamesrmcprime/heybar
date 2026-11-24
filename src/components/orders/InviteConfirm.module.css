@@ -1,0 +1,21 @@
+.primary {
+  height: 48px;
+  width: 100%;
+  border-radius: var(--hb-radius-md);
+  background: var(--hb-cta);
+  color: var(--hb-mist);
+  font-weight: 700;
+  font-family: var(--hb-font-body);
+  font-size: 15px;
+  border: none;
+}
+
+.shellNote {
+  color: var(--hb-amber);
+  font-size: 13px;
+  font-weight: 650;
+  text-align: center;
+  padding: 12px;
+  border: 1px dashed var(--hb-line-strong);
+  border-radius: var(--hb-radius-md);
+}
